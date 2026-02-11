@@ -33,3 +33,5 @@ pnpm-debug.log*
 # Cache
 .cache/
 .json
+
+track-recored.md
