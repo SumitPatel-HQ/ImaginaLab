@@ -1,11 +1,10 @@
-# <p align="center">🌠 Personal Photography Showcase</p>
+# <p align="center">Imaginalab</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
   <img src="https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" />
 </p>
 
 ---
@@ -30,7 +29,7 @@
 *   **Smart Virtualization**: Efficiently renders large volumes of data using `react-window` without affecting browser performance.
 *   **Next-Gen Formats**: Instant loading via **ImageKit** with automatic WebP conversion and caching.
 
-### �️ Personal Privacy
+### 🛡️ Personal Privacy
 *   **Access Gate**: Simple and effective password protection for personal privacy.
 *   **Browsing Security**: Built-in "Security Blur" mode for browsing your private photos in public spaces.
 
@@ -64,7 +63,9 @@ VITE_PASSWORD_HERE=your_secure_password
 
 # ImageKit Credentials
 VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_id/
-VITE_IMAGEKIT_PATH_PREFIX=/AP/
+VITE_IMAGEKIT_PATH_PREFIX=/YourFolderName/
+VITE_IMAGEKIT_PUBLIC_KEY=your_public_key
+VITE_IMAGEKIT_PRIVATE_KEY=your_private_key
 ```
 
 ### 3. Development
@@ -75,7 +76,7 @@ pnpm dev
 
 ---
 
-## � Project Structure
+## 📁 Project Structure
 
 ```text
 src/
@@ -91,6 +92,5 @@ src/
 ---
 
 <p align="center">
-  <i>Created with ❤️ for premium photography viewing.</i><br>
   Licensed under the <a href="./LICENSE">MIT License</a>.
 </p>
