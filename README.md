@@ -2,9 +2,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4.3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
 </p>
 
 ---
@@ -20,7 +20,7 @@
 
 ### 🎨 High-End Aesthetics
 *   **Fluid Motion**: Seamless animations powered by `GSAP`, `Framer Motion`, and `React Spring` for a true cinematic feel.
-*   **Modern Glassmorphism**: High-fidelity UI components using `tailwindcss-glassmorphism`.
+*   **Modern Glassmorphism**: Layered frosted panels and depth cues across the gallery UI.
 *   **Masonry Layout**: A dynamic grid that intelligently organizes your photos based on their natural aspect ratio.
 *   **Dark Mode Native**: Designed from the ground up to look incredible in low-light environments.
 
