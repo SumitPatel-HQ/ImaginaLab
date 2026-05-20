@@ -28,6 +28,44 @@ const Card: React.FC<CardProps> = React.memo(({
   const [loaded, setLoaded] = useState(false);
   const [placeholderLoaded, setPlaceholderLoaded] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  // Safety fallback for cached images where onLoad might not fire
+  useEffect(() => {
+    if (!cardRef.current || loaded) return;
+    
+    // Check if the main image is already complete (loaded from browser cache)
+    const images = cardRef.current.querySelectorAll('img');
+    images.forEach(img => {
+      // The second image is usually the main high-quality one
+      if (img.complete && img.src && img.src.includes(image.src)) {
+        setLoaded(true);
+        setShowSkeleton(false);
+      }
+    });
+    
+    // Also set a polling interval just in case React's synthetic event misses it
+    const interval = setInterval(() => {
+      const imgs = cardRef.current?.querySelectorAll('img');
+      if (imgs) {
+        let anyComplete = false;
+        imgs.forEach(img => {
+          // If the image has a src and is complete (and naturalWidth > 0 ensures it's not a broken image)
+          if (img.complete && img.naturalWidth > 0 && (img.src.includes('imagekit') || img.src.includes('tr='))) {
+            anyComplete = true;
+          }
+        });
+        
+        if (anyComplete) {
+          setLoaded(true);
+          setShowSkeleton(false);
+          clearInterval(interval);
+        }
+      }
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [image.src, loaded]);
 
   // Reset loading state when image source changes (e.g., on shuffle)
   useEffect(() => {
@@ -45,12 +83,13 @@ const Card: React.FC<CardProps> = React.memo(({
     setPlaceholderLoaded(true);
   }, []);
 
-  const handleImageError = useCallback(() => {
-    // If image fails, hide skeleton to avoid stuck state and show fallback styling
-    setLoaded(false);
-    setPlaceholderLoaded(false);
+  const handleImageError = useCallback((e: any) => {
+    console.error(`🚨 Image failed to load: ${image.src}`, e);
+    // Don't just hide everything. Show a visible fallback state.
+    setLoaded(true); // Force loaded to true so opacity becomes 100
+    setPlaceholderLoaded(true);
     setShowSkeleton(false);
-  }, []);
+  }, [image.src]);
 
   const aspectRatioClass = getAspectRatioClass(image.ratio);
   const cardPosition = getCardPosition(index, activeIndex, totalImages, isDragging, isMobile);
@@ -58,6 +97,7 @@ const Card: React.FC<CardProps> = React.memo(({
 
   return (
     <div 
+      ref={cardRef}
       className="absolute left-1/2 top-1/2 will-change-transform" 
       style={{
         ...cardPosition,
@@ -87,9 +127,7 @@ const Card: React.FC<CardProps> = React.memo(({
           src={image.src}
           alt=""
           loading="eager"
-          className={`absolute inset-0 w-full h-full object-cover blur-sm transition-opacity duration-500 ${
-            placeholderLoaded ? 'opacity-30' : 'opacity-0'
-          } ${showSkeleton ? 'invisible' : 'visible'}`}
+          className={`absolute inset-0 w-full h-full object-cover blur-sm transition-opacity duration-500 z-10 ${placeholderLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={handlePlaceholderLoad}
           onError={handleImageError}
           transformation={IMAGE_TRANSFORMATIONS.placeholder}
@@ -101,9 +139,7 @@ const Card: React.FC<CardProps> = React.memo(({
           src={image.src}
           alt={image.title || "Gallery Image"}
           loading="eager"
-          className={`${RESPONSIVE_SIZES} ${aspectRatioClass} object-cover transition-opacity duration-500 ${
-            loaded ? 'opacity-100' : 'opacity-0'
-          } ${showSkeleton ? 'invisible' : 'visible'}`}
+          className={`${RESPONSIVE_SIZES} ${aspectRatioClass} object-cover transition-opacity duration-500 z-20 relative ${loaded ? 'opacity-100' : 'opacity-0'}`}
           style={{
             imageRendering: 'high-quality',
             WebkitFontSmoothing: 'antialiased',

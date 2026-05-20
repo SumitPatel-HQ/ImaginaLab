@@ -1,5 +1,5 @@
 // Optimized ImageKit-powered image gallery
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ImageGrid from '../ImageGrid';
 import { useGalleryState } from './state';
 import { LoadingState } from './Loading';
@@ -7,9 +7,19 @@ import { MainGalleryView } from './Main';
 
 const Gallery: React.FC = () => {
   const galleryState = useGalleryState();
+  const [mounted, setMounted] = useState(false);
 
-  // Loading state - only show full loading screen if we have no images and are loading
-  if (galleryState.loading && galleryState.images.length === 0) {
+  // Hydration guard
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <LoadingState />;
+  }
+
+  // Proper loading gate: check if loading or if we have no images (which shouldn't happen unless loading or error)
+  if (galleryState.loading || !galleryState.images || galleryState.images.length === 0) {
     return <LoadingState />;
   }
 

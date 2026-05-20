@@ -49,7 +49,24 @@ export const useImageCache = () => {
         return null;
       }
       
-      return JSON.parse(cachedImages);
+      const parsedImages = JSON.parse(cachedImages);
+      
+      // Strict schema validation for cached data
+      if (!Array.isArray(parsedImages) || parsedImages.length === 0) {
+        console.log('🧹 Cache invalid shape (not array), clearing...');
+        clearImageCache();
+        return null;
+      }
+      
+      // Validate the first item has the required ImageKitImage schema
+      const firstItem = parsedImages[0];
+      if (!firstItem || typeof firstItem !== 'object' || !firstItem.id || !firstItem.src) {
+        console.log('🧹 Cache invalid schema (missing id/src), clearing...');
+        clearImageCache();
+        return null;
+      }
+      
+      return parsedImages;
     } catch (error) {
       console.warn('Error parsing cached images:', error);
       clearImageCache();

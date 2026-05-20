@@ -73,24 +73,29 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
           style={{ perspective: '1000px' }}
         >
           {images.map((image, index) => {
+            // Safe index validation
+            const safeCurrentIndex = Number.isInteger(currentIndex) && currentIndex >= 0 && currentIndex < images.length 
+              ? currentIndex 
+              : 0;
+
             // Only render images that are close to current index for performance
-            const diff = Math.abs(index - currentIndex);
+            const diff = Math.abs(index - safeCurrentIndex);
             const shouldRender = diff <= 2 || 
-                               (currentIndex === 0 && index >= images.length - 2) ||
-                               (currentIndex >= images.length - 2 && index <= 2);
+                               (safeCurrentIndex === 0 && index >= images.length - 2) ||
+                               (safeCurrentIndex >= images.length - 2 && index <= 2);
             
-            if (!shouldRender) return null;
+            if (!shouldRender || !image) return null;
             
             return (
               <div
-                key={image.id}
+                key={image.id || `fallback-img-key-${index}`}
                 className="absolute inset-0 cursor-pointer"
                 onClick={openImageModal}
               >
                 <Card
                   image={image}
                   index={index}
-                  activeIndex={currentIndex}
+                  activeIndex={safeCurrentIndex}
                   totalImages={images.length}
                   isDragging={isDragging}
                   isMobile={isMobile}
