@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { type ImageKitImage, IMAGEKIT_URL_ENDPOINT } from '../../services/ImageKit';
 import { GALLERY_CONFIG } from './config';
 
@@ -12,8 +12,6 @@ export const useImagePreloader = (
   images: ImageKitImage[],
   preloadCount: number = GALLERY_CONFIG.PRELOAD_COUNT
 ): UseImagePreloaderReturn => {
-  const [visibleImageIndices, setVisibleImageIndices] = useState<number[]>([]);
-
   const { PRELOAD_DELAY } = GALLERY_CONFIG;
 
   // Preload image function
@@ -26,9 +24,8 @@ export const useImagePreloader = (
     });
   }, []);
 
-  // Calculate visible image indices for preloading
-  useEffect(() => {
-    if (images.length === 0) return;
+  const visibleImageIndices = useMemo(() => {
+    if (images.length === 0) return [];
     
     const highPriorityIndices = [
       currentIndex,
@@ -43,7 +40,7 @@ export const useImagePreloader = (
       secondaryIndices.push(prevIndex, nextIndex);
     }
     
-    setVisibleImageIndices([...highPriorityIndices, ...secondaryIndices]);
+    return [...highPriorityIndices, ...secondaryIndices];
   }, [currentIndex, images.length, preloadCount]);
 
   // Preload visible images

@@ -38,7 +38,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   const handleGoToPrev = () => goToPrevImage(visibleImages);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-indigo-900 " style={{overscrollBehavior: 'none'}}>
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900 " style={{overscrollBehavior: 'none'}}>
       <div className="max-w-7xl mx-auto relative">
         <Header
           onClose={onClose}
@@ -98,6 +98,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
       {/* Image Modal */}
       {selectedImage && (
         <ImageModal 
+          key={selectedImage.id}
           image={selectedImage} 
           onClose={closeModal}
           onNext={handleGoToNext}

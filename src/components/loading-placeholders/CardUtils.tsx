@@ -10,16 +10,19 @@ export const getCardPosition = (
   activeIndex: number,
   totalImages: number,
   isDragging: boolean,
-  isMobile: boolean
+  isMobile: boolean,
+  dragOffset: number = 0
 ) => {
   const diff = index - activeIndex;
   const isActive = diff === 0;
   const isPrev = diff === -1 || (activeIndex === 0 && index === totalImages - 1);
   const isNext = diff === 1 || (activeIndex === totalImages - 1 && index === 0);
+  const dragShift = isDragging ? dragOffset : 0;
+  const adjacentShift = dragShift * 0.35;
   
   if (isActive) {
     return {
-      transform: 'translate(-50%, -50%)',
+      transform: `translate(calc(-50% + ${dragShift}px), -50%)`,
       zIndex: 30,
       opacity: 1
     };
@@ -28,8 +31,8 @@ export const getCardPosition = (
   if (isPrev) {
     return {
       transform: isMobile && isDragging 
-        ? 'translate(-60%, -50%) scale(0.9)'
-        : 'translate(-60%, -50%) rotate(-10deg) scale(0.9)',
+        ? `translate(calc(-60% + ${adjacentShift}px), -50%) scale(0.9)`
+        : `translate(calc(-60% + ${adjacentShift}px), -50%) rotate(-10deg) scale(0.9)`,
       zIndex: 20,
       opacity: 0.7
     };
@@ -38,15 +41,15 @@ export const getCardPosition = (
   if (isNext) {
     return {
       transform: isMobile && isDragging
-        ? 'translate(-40%, -50%) scale(0.9)'
-        : 'translate(-40%, -50%) rotate(10deg) scale(0.9)',
+        ? `translate(calc(-40% + ${adjacentShift}px), -50%) scale(0.9)`
+        : `translate(calc(-40% + ${adjacentShift}px), -50%) rotate(10deg) scale(0.9)`,
       zIndex: 20,
       opacity: 0.7
     };
   }
   
   return {
-    transform: 'translate(-50%, -50%) scale(0.8)',
+    transform: `translate(calc(-50% + ${adjacentShift * 0.5}px), -50%) scale(0.8)`,
     zIndex: 10,
     opacity: 0
   };

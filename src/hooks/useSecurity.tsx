@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 export interface SecurityProtectionOptions {
   onSuspiciousActivity?: () => void;
@@ -37,6 +37,26 @@ const useSecurityProtection = (options: SecurityProtectionOptions = {}) => {
     e.preventDefault();
     return false;
   }, []);
+  
+  // Handle screenshot attempt
+  const handleScreenshotAttempt = useCallback(() => {
+    setIsScreenshotAttempted(true);
+    setIsBlurred(true);
+    onSuspiciousActivity?.();
+    
+    requestAnimationFrame(() => {
+      if (noiseOverlayRef.current) {
+        noiseOverlayRef.current.style.opacity = '1';
+      }
+      
+      setTimeout(() => {
+        if (noiseOverlayRef.current) {
+          noiseOverlayRef.current.style.opacity = '0';
+        }
+        setIsScreenshotAttempted(false);
+      }, 1000);
+    });
+  }, [onSuspiciousActivity]);
   
   // Handle keyboard shortcuts that might open DevTools
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -77,32 +97,8 @@ const useSecurityProtection = (options: SecurityProtectionOptions = {}) => {
     }
     
     return true;
-  }, [onSuspiciousActivity]);
+  }, [onSuspiciousActivity, handleScreenshotAttempt]);
   
-  // Handle screenshot attempt
-  const handleScreenshotAttempt = useCallback(() => {
-    setIsScreenshotAttempted(true);
-    setIsBlurred(true);
-    onSuspiciousActivity?.();
-    
-    // After a small delay (to ensure it gets captured in the screenshot), 
-    // show a visual noise overlay to make the screenshot less useful
-    requestAnimationFrame(() => {
-      if (noiseOverlayRef.current) {
-        noiseOverlayRef.current.style.opacity = '1';
-      }
-      
-      // After 1 second, hide the noise overlay
-      setTimeout(() => {
-        if (noiseOverlayRef.current) {
-          noiseOverlayRef.current.style.opacity = '0';
-        }
-        setIsScreenshotAttempted(false);
-      }, 1000);
-    });
-  }, [onSuspiciousActivity]);
-  
-  // Detect visibility change (tab switching)
   const handleVisibilityChange = useCallback(() => {
     if (document.visibilityState === 'hidden') {
       onSuspiciousActivity?.();

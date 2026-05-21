@@ -1,4 +1,5 @@
 // Image loading and metadata management
+import logger from '../../utils/logger';
 import type { ImageKitImage, ImageMetadata, BatchResult } from './types';
 import { CONFIG, IMAGEKIT_URL_ENDPOINT, getImageKitPath, testImageExists, createImageTransformations, getOptimizedImageUrl, getDeviceType, getOptimalQuality } from './config';
 import { isImageLoaded, preloadImageKit } from './cache';
@@ -28,7 +29,7 @@ export const getImageMetadata = async (imagePath: string, fileName?: string): Pr
       });
     };
     img.onerror = () => {
-      console.warn(`❌ Failed to load metadata for ${imagePath}`);
+      logger.warn(`❌ Failed to load metadata for ${imagePath}`);
       const originalFileName = fileName || imagePath.split('/').pop() || 'Unknown';
       const fileExt = getFileExtension(originalFileName);
       const fileNameOnly = getFileNameWithoutExtension(originalFileName);
@@ -45,20 +46,18 @@ export const getImageMetadata = async (imagePath: string, fileName?: string): Pr
   });
 };
 
-// NEW: API-based discovery - Fetch all files from ImageKit using List Files API
-// This supports any file type and any filename (including special characters)
 export const discoverAllFilesFromAPI = async (): Promise<ImageKitImage[]> => {
-  console.log('🚀 Using ImageKit API to discover all files...');
+  logger.log('🚀 Using ImageKit API to discover all files...');
   
   try {
     const folderPath = import.meta.env.VITE_IMAGEKIT_PATH_PREFIX || '/AP/';
-    console.log(`📂 Fetching files from: ${folderPath}`);
+    logger.log(`📂 Fetching files from: ${folderPath}`);
     
     const files = await getAllFilesFromFolder(folderPath);
-    console.log(`✅ Found ${files.length} files from ImageKit API`);
+    logger.log(`✅ Found ${files.length} files from ImageKit API`);
     
     if (files.length === 0) {
-      console.warn('⚠️ No files found in the specified folder. Check your VITE_IMAGEKIT_PATH_PREFIX.');
+      logger.warn('⚠️ No files found in the specified folder. Check your VITE_IMAGEKIT_PATH_PREFIX.');
       return [];
     }
     
@@ -89,16 +88,15 @@ export const discoverAllFilesFromAPI = async (): Promise<ImageKitImage[]> => {
           height: file.height,
         });
       } catch (error) {
-        console.warn(`⚠️ Error processing file ${file.name}:`, error);
+        logger.warn(`⚠️ Error processing file ${file.name}:`, error);
       }
     }
     
-    console.log(`✅ Successfully processed ${images.length} images from API`);
+    logger.log(`✅ Successfully processed ${images.length} images from API`);
     return images;
   } catch (error) {
-    console.error('❌ Error discovering files from API:', error);
-    console.log('⚠️ Falling back to legacy numeric discovery...');
-    // Fallback to old method if API fails
+    logger.error('❌ Error discovering files from API:', error);
+    logger.log('⚠️ Falling back to legacy numeric discovery...');
     return discoverAvailableImages(100);
   }
 };
@@ -134,18 +132,17 @@ export const discoverAvailableImages = async (limit: number = 10): Promise<Image
         consecutiveFailures++;
       }
     } catch (error) {
-      console.warn(`Error testing image ${imageNumber}:`, error);
+      logger.warn(`Error testing image ${imageNumber}:`, error);
       consecutiveFailures++;
     }
   }
   
-  console.log(`Fast discovery: ${images.length} images (limit: ${limit})`);
+  logger.log(`Fast discovery: ${images.length} images (limit: ${limit})`);
   return images;
 };
 
-// Get images from a specific range
 export const getAllImagesInRange = async (startNum: number, endNum: number): Promise<ImageKitImage[]> => {
-  console.log(`🎯 Loading images from ${startNum} to ${endNum}...`);
+  logger.log(`🎯 Loading images from ${startNum} to ${endNum}...`);
   
   const images: ImageKitImage[] = [];
   
@@ -178,7 +175,7 @@ export const getAllImagesInRange = async (startNum: number, endNum: number): Pro
             };
           }
         } catch (error) {
-          console.warn(`Error testing image ${imageNumber}:`, error);
+          logger.warn(`Error testing image ${imageNumber}:`, error);
         }
         return null;
       })
@@ -188,13 +185,12 @@ export const getAllImagesInRange = async (startNum: number, endNum: number): Pro
       if (result) images.push(result);
     });
     
-    // Progress logging for large ranges
     if ((i - startNum + CONFIG.DEFAULT_BATCH_SIZE) % 100 === 0 || i + CONFIG.DEFAULT_BATCH_SIZE > endNum) {
-      console.log(`📊 Progress: ${Math.min(i + CONFIG.DEFAULT_BATCH_SIZE - startNum, endNum - startNum + 1)} / ${endNum - startNum + 1} checked, ${images.length} found`);
+      logger.log(`📊 Progress: ${Math.min(i + CONFIG.DEFAULT_BATCH_SIZE - startNum, endNum - startNum + 1)} / ${endNum - startNum + 1} checked, ${images.length} found`);
     }
   }
   
-  console.log(`✅ Loaded ${images.length} images from range ${startNum}-${endNum}`);
+  logger.log(`✅ Loaded ${images.length} images from range ${startNum}-${endNum}`);
   return images;
 };
 
@@ -232,7 +228,7 @@ export const discoverImagesProgressively = async (startIndex: number, count: num
             };
           }
         } catch (error) {
-          console.warn(`Error testing image ${imageNumber}:`, error);
+          logger.warn(`Error testing image ${imageNumber}:`, error);
         }
         return null;
       })

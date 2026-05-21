@@ -1,38 +1,36 @@
 // Image discovery algorithms
+import logger from '../../utils/logger';
 import type { ImageRange } from './types';
 import { CONFIG, getImageKitPath, testImageExists } from './config';
 import { getAllFilesFromFolder } from './api';
 
-// NEW: API-based range detection - Get actual file count from ImageKit API
 export const findImageRangeFromAPI = async (): Promise<ImageRange> => {
-  console.log('🔍 Using ImageKit API for range detection...');
+  logger.log('🔍 Using ImageKit API for range detection...');
   
   try {
     const files = await getAllFilesFromFolder(import.meta.env.VITE_IMAGEKIT_PATH_PREFIX || '/AP/');
-    console.log(`✅ Found ${files.length} files from ImageKit API`);
+    logger.log(`✅ Found ${files.length} files from ImageKit API`);
     
     return {
       min: 1,
       max: files.length
     };
   } catch (error) {
-    console.error('❌ Error in API-based range detection:', error);
-    console.log('⚠️ Falling back to legacy binary search...');
+    logger.error('❌ Error in API-based range detection:', error);
+    logger.log('⚠️ Falling back to legacy binary search...');
     return findImageRange();
   }
 };
 
-// Smart discovery using binary search to find actual range (LEGACY)
 export const findImageRange = async (): Promise<ImageRange> => {
-  console.log('🔍 Starting range detection...');
+  logger.log('🔍 Starting range detection...');
   
   let low = 1;
   let high = 1000;
   let maxFound = 0;
   
-  // Find rough upper bound by doubling
   while (high <= CONFIG.MAX_RANGE) {
-    console.log(`🧪 Testing image ${high}...`);
+    logger.log(`🧪 Testing image ${high}...`);
     const imagePath = getImageKitPath(high);
     const exists = await Promise.race([
       testImageExists(imagePath),
@@ -41,23 +39,22 @@ export const findImageRange = async (): Promise<ImageRange> => {
     
     if (exists) {
       maxFound = high;
-      console.log(`✅ Found image ${high}, expanding search...`);
+      logger.log(`✅ Found image ${high}, expanding search...`);
       high *= 2;
     } else {
-      console.log(`❌ Image ${high} not found, starting binary search...`);
+      logger.log(`❌ Image ${high} not found, starting binary search...`);
       break;
     }
   }
   
-  // Binary search for exact maximum
-  low = maxFound;
-  high = Math.min(high, CONFIG.MAX_RANGE);
+  const searchLow = maxFound;
+  const searchHigh = Math.min(high, CONFIG.MAX_RANGE);
   
-  console.log(`🎯 Binary search between ${low} and ${high}...`);
+  logger.log(`🎯 Binary search between ${searchLow} and ${searchHigh}...`);
   
   while (low < high) {
     const mid = Math.floor((low + high + 1) / 2);
-    console.log(`🔍 Testing midpoint: ${mid}`);
+    logger.log(`🔍 Testing midpoint: ${mid}`);
     
     const imagePath = getImageKitPath(mid);
     const exists = await Promise.race([
@@ -68,20 +65,19 @@ export const findImageRange = async (): Promise<ImageRange> => {
     if (exists) {
       low = mid;
       maxFound = mid;
-      console.log(`✅ Image ${mid} exists, searching higher...`);
+      logger.log(`✅ Image ${mid} exists, searching higher...`);
     } else {
       high = mid - 1;
-      console.log(`❌ Image ${mid} missing, searching lower...`);
+      logger.log(`❌ Image ${mid} missing, searching lower...`);
     }
   }
   
-  console.log(`🏁 Final range detected: 1 to ${maxFound}`);
+  logger.log(`🏁 Final range detected: 1 to ${maxFound}`);
   return { min: 1, max: maxFound };
 };
 
-// Quick estimation for very large datasets (sample-based)
 export const getEstimatedImageCount = async (): Promise<number> => {
-  console.log('📊 Estimating total image count with sampling...');
+  logger.log('📊 Estimating total image count with sampling...');
   
   let maxFound = 0;
   let consecutiveGaps = 0;
@@ -96,18 +92,18 @@ export const getEstimatedImageCount = async (): Promise<number> => {
     if (exists) {
       maxFound = i;
       consecutiveGaps = 0;
-      console.log(`✅ Sample found at ${i}`);
+      logger.log(`✅ Sample found at ${i}`);
     } else {
       consecutiveGaps++;
       if (consecutiveGaps >= 3) {
-        console.log(`🔍 Stopping sampling at ${i}, last found: ${maxFound}`);
+        logger.log(`🔍 Stopping sampling at ${i}, last found: ${maxFound}`);
         break;
       }
     }
   }
   
   const estimate = maxFound + (CONFIG.SAMPLE_INTERVAL * 2);
-  console.log(`📈 Estimated ~${estimate} images based on sampling`);
+  logger.log(`📈 Estimated ~${estimate} images based on sampling`);
   return estimate;
 };
 

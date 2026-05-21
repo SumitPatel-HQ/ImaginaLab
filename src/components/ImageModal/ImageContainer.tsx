@@ -4,6 +4,7 @@ import { getImageKitUrl, getPlaceholderUrl, getResponsiveSrcSet } from './consta
 import { LoadingStates } from './LoadingStates';
 import { ImageTitle } from './ImageTitle';
 import type { ImageLoadingState } from '../../hooks/useImageState';
+import logger from '../../utils/logger';
 
 interface ImageContainerProps {
   image: Image;
@@ -48,8 +49,7 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
 }) => {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   
-  // Debug: Log the image data
-  console.log('🖼️ ImageContainer rendering with image:', {
+  logger.log('🖼️ ImageContainer rendering with image:', {
     title: image.title,
     src: image.src,
     filePath: image.filePath,

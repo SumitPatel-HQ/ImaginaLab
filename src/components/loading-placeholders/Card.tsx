@@ -15,6 +15,8 @@ interface CardProps {
   totalImages: number;
   isDragging?: boolean;
   isMobile?: boolean;
+  dragOffset?: number;
+  onClick?: () => void;
 }
 
 const Card: React.FC<CardProps> = React.memo(({ 
@@ -23,7 +25,9 @@ const Card: React.FC<CardProps> = React.memo(({
   activeIndex, 
   totalImages, 
   isDragging = false, 
-  isMobile = false 
+  isMobile = false,
+  dragOffset = 0,
+  onClick
 }) => {
   const [loaded, setLoaded] = useState(false);
   const [placeholderLoaded, setPlaceholderLoaded] = useState(false);
@@ -83,22 +87,21 @@ const Card: React.FC<CardProps> = React.memo(({
     setPlaceholderLoaded(true);
   }, []);
 
-  const handleImageError = useCallback((e: any) => {
-    console.error(`🚨 Image failed to load: ${image.src}`, e);
-    // Don't just hide everything. Show a visible fallback state.
-    setLoaded(true); // Force loaded to true so opacity becomes 100
+  const handleImageError = useCallback(() => {
+    setLoaded(true);
     setPlaceholderLoaded(true);
     setShowSkeleton(false);
-  }, [image.src]);
+  }, []);
 
   const aspectRatioClass = getAspectRatioClass(image.ratio);
-  const cardPosition = getCardPosition(index, activeIndex, totalImages, isDragging, isMobile);
+  const cardPosition = getCardPosition(index, activeIndex, totalImages, isDragging, isMobile, dragOffset);
   const isActive = index === activeIndex;
 
   return (
     <div 
       ref={cardRef}
-      className="absolute left-1/2 top-1/2 will-change-transform" 
+      className="absolute left-1/2 top-1/2 will-change-transform cursor-pointer" 
+      onClick={onClick}
       style={{
         ...cardPosition,
         transition: isDragging ? 'none' : 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -117,7 +120,7 @@ const Card: React.FC<CardProps> = React.memo(({
               transform: 'translate(-50%, -50%)'
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
           </div>
         )}
 

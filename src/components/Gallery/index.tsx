@@ -1,18 +1,17 @@
 // Optimized ImageKit-powered image gallery
-import React, { useEffect, useState } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 import ImageGrid from '../ImageGrid';
 import { useGalleryState } from './state';
 import { LoadingState } from './Loading';
 import { MainGalleryView } from './Main';
 
-const Gallery: React.FC = () => {
+const Gallery = () => {
   const galleryState = useGalleryState();
-  const [mounted, setMounted] = useState(false);
-
-  // Hydration guard
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    useCallback(() => () => {}, []),
+    () => true,
+    () => false
+  );
 
   if (!mounted) {
     return <LoadingState />;

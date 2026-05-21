@@ -1,10 +1,13 @@
 // Enhanced ImageKit configuration with smart image transformations
+import logger from '../../utils/logger';
+
 export const IMAGEKIT_URL_ENDPOINT = import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || '';
 export const IMAGEKIT_PATH_PREFIX = import.meta.env.VITE_IMAGEKIT_PATH_PREFIX || '/AP/';
+const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || '';
+const IMAGEKIT_PRIVATE_KEY = import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY || '';
 
-// Validate environment variables
 if (!IMAGEKIT_URL_ENDPOINT) {
-  console.error('⚠️  VITE_IMAGEKIT_URL_ENDPOINT is not defined in environment variables');
+  logger.error('⚠️  VITE_IMAGEKIT_URL_ENDPOINT is not defined in environment variables');
 }
 
 // High-quality image transformation builders - Enhanced for premium visual experience
@@ -136,6 +139,25 @@ export const getConnectionQuality = (): 'slow' | 'fast' | 'unknown' => {
   }
   
   return 'fast';
+};
+
+const toConfigFingerprint = (value: string): string => {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0;
+  }
+
+  return Math.abs(hash).toString(36);
+};
+
+export const getImageKitConfigSignature = (): string => {
+  return toConfigFingerprint([
+    IMAGEKIT_URL_ENDPOINT,
+    IMAGEKIT_PATH_PREFIX,
+    IMAGEKIT_PUBLIC_KEY,
+    IMAGEKIT_PRIVATE_KEY,
+  ].join('|'));
 };
 
 // Smart quality selector based on device capabilities and connection

@@ -2,12 +2,12 @@ import React from 'react';
 import { Skeleton } from '../ui/Skeleton';
 
 export const LoadingState: React.FC = () => (
-  <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-indigo-900 overflow-hidden">
+  <div className="fixed inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900 overflow-hidden">
     <div className="w-full h-full relative">
       {/* Main image skeleton positioned exactly like real cards */}
       <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 will-change-transform">
         <div className="relative overflow-hidden rounded-2xl shadow-lg">
-          <div className="w-[85vw] sm:w-[70vw] md:w-[50vw] lg:w-[40vw] max-w-xl aspect-[2/3] relative">
+          <div className="w-[85vw] sm:w-[70vw] md:w-[50vw] lg:w-[40vw] max-w-xl aspect-2/3 relative">
             <Skeleton 
               className="absolute inset-0 w-full h-full" 
               shimmer 

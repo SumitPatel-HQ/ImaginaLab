@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
@@ -16,6 +16,47 @@ const Header: React.FC<HeaderProps> = ({
   onSliderStart
 }) => {
   const sliderTrackRef = useRef<HTMLDivElement>(null);
+  const initialThumbPosition = ((gridDensity - 1) / 4) * 100;
+  const animationFrameRef = useRef<number | null>(null);
+  const thumbPositionRef = useRef(initialThumbPosition);
+  const [thumbPosition, setThumbPosition] = useState(initialThumbPosition);
+
+  useEffect(() => {
+    const targetPosition = ((gridDensity - 1) / 4) * 100;
+
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    const startPosition = thumbPositionRef.current;
+    const startTime = performance.now();
+    const duration = 220;
+
+    const animate = (currentTime: number) => {
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const nextPosition = startPosition + (targetPosition - startPosition) * easedProgress;
+
+      thumbPositionRef.current = nextPosition;
+      setThumbPosition(nextPosition);
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        animationFrameRef.current = null;
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [gridDensity]);
 
   const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!sliderTrackRef.current) return;
@@ -32,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-4">
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-sm transition-colors text-white"
+          className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-sm transition-colors text-white cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="hidden sm:block">Back</span>
@@ -60,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Slider */}
           <div 
             ref={sliderTrackRef}
-            className="w-28 h-2 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full relative cursor-pointer"
+            className="w-28 h-2 bg-linear-to-r from-indigo-400 to-purple-500 rounded-full relative cursor-pointer"
             onMouseDown={handleSliderClick}
             role="slider"
             aria-valuemin={1}
@@ -68,9 +109,9 @@ const Header: React.FC<HeaderProps> = ({
             aria-valuenow={gridDensity}
           >
             <div 
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-md cursor-pointer"
+              className="absolute top-1/2 w-4 h-4 rounded-full bg-white shadow-md cursor-pointer -translate-y-1/2 -translate-x-1/2 will-change-transform"
               style={{ 
-                left: gridDensity === 5 ? 'calc(100% - 8px)' : `calc(${(gridDensity - 1) * 25}%)`
+                left: `${thumbPosition}%`
               }}
             />
           </div>

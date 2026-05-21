@@ -94,7 +94,7 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
         userSelect: 'none'
       }}
     >
-      <div className="absolute inset-0 animate-modal-in" />
+      <div className="absolute inset-0 animate-modal-in pointer-events-none" />
       
       <div 
         className="relative max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[60%] max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl transform transition-transform duration-300 ease-in-out will-change-transform"

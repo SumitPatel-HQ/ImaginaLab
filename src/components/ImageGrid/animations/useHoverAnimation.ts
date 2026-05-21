@@ -18,24 +18,19 @@ export const useHoverAnimation = ({ imageUrl }: UseHoverAnimationProps) => {
   const imagesRef = useRef<NodeListOf<HTMLImageElement> | null>(null);
   const cardRectRef = useRef<DOMRect | null>(null);
   const [isVisible, setIsVisible] = useState(true);
-  const [highQualityUrl, setHighQualityUrl] = useState<string>('');
+  const throttledHandlerRef = useRef<((...args: unknown[]) => void) | null>(null);
   
-  // Detect if device supports hover (desktop/mouse devices)
   const supportsHover = useMemo(() => {
     if (typeof window === 'undefined') return true;
     return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   }, []);
 
-  // Generate ultra-high-quality URL - NO COMPROMISE ON QUALITY
-  useEffect(() => {
-    if (HOVER_CONFIG.USE_HIGH_QUALITY) {
-      const imagePath = imageUrl.split('?')[0].replace(import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || '', '');
-      const hqUrl = getOptimizedImageUrl(imagePath, createImageTransformations.ultra(2400));
-      setHighQualityUrl(hqUrl);
-    }
+  const highQualityUrl = useMemo(() => {
+    if (!imageUrl) return '';
+    const imagePath = imageUrl.split('?')[0].replace(import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || '', '');
+    return getOptimizedImageUrl(imagePath, createImageTransformations.ultra(2400));
   }, [imageUrl]);
 
-  // Cache DOM elements and setup intersection observer
   useEffect(() => {
     const currentCard = cardRef.current;
     if (currentCard) {
@@ -57,16 +52,13 @@ export const useHoverAnimation = ({ imageUrl }: UseHoverAnimationProps) => {
     }
   }, []);
 
-  // Simple hover handler - only scale (disabled on touch devices)
   const handleMouseMoveRaw = useCallback(() => {
     if (!cardRef.current || !isVisible || !supportsHover) return;
 
-    // Apply scale transform only
     const card = cardRef.current;
     card.style.setProperty('--scale', HOVER_CONFIG.SCALE_FACTOR.toString());
     card.setAttribute('data-hovering', 'true');
     
-    // Apply high-quality to images
     if (imagesRef.current) {
       imagesRef.current.forEach(img => {
         img.style.imageRendering = 'high-quality';
@@ -75,11 +67,9 @@ export const useHoverAnimation = ({ imageUrl }: UseHoverAnimationProps) => {
     }
   }, [isVisible, supportsHover]);
 
-  // Mouse enter handler - immediate response (disabled on touch devices)
   const handleMouseEnter = useCallback(() => {
     if (!cardRef.current || !supportsHover) return;
     
-    // Immediately apply hover state
     const card = cardRef.current;
     card.style.setProperty('--scale', HOVER_CONFIG.SCALE_FACTOR.toString());
     card.setAttribute('data-hovering', 'true');
@@ -93,7 +83,6 @@ export const useHoverAnimation = ({ imageUrl }: UseHoverAnimationProps) => {
   }, [supportsHover]);
 
 
-  // Mouse leave handler (disabled on touch devices)
   const handleMouseLeave = useCallback(() => {
     if (!cardRef.current || !supportsHover) return;
     
@@ -105,11 +94,9 @@ export const useHoverAnimation = ({ imageUrl }: UseHoverAnimationProps) => {
       }, HOVER_CONFIG.TRANSITION_SPEED * 1000);
     }
     
-    // Reset transforms
     cardRef.current.style.setProperty('--scale', '1');
     cardRef.current.removeAttribute('data-hovering');
     
-    // Reset high-quality images
     if (imagesRef.current) {
       imagesRef.current.forEach(img => {
         img.style.filter = '';
@@ -118,11 +105,13 @@ export const useHoverAnimation = ({ imageUrl }: UseHoverAnimationProps) => {
     }
   }, [supportsHover]);
 
-  // Create RAF-throttled mouse handler
-  const handleMouseMove = useMemo(
-    () => rafThrottle(handleMouseMoveRaw as (...args: unknown[]) => void),
-    [handleMouseMoveRaw]
-  );
+  useEffect(() => {
+    throttledHandlerRef.current = rafThrottle(handleMouseMoveRaw as (...args: unknown[]) => void);
+  }, [handleMouseMoveRaw]);
+
+  const handleMouseMove = useCallback((...args: unknown[]) => {
+    throttledHandlerRef.current?.(...args);
+  }, []);
 
   return {
     cardRef,

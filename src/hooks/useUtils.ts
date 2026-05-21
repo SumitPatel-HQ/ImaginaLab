@@ -68,29 +68,22 @@ export const getUltraHighQualityImageSrc = (originalSrc: string) => {
 // Visible indicators calculation hook
 export const useVisibleIndicators = (currentIndex: number, totalImages: number, maxVisible = 8) => {
   return useMemo(() => {
+    if (totalImages <= 0) {
+      return [];
+    }
+
     if (totalImages <= maxVisible) {
       return Array.from({ length: totalImages }, (_, i) => i);
     }
 
-    const halfCount = Math.floor(maxVisible / 2);
-    let startIndex = currentIndex - halfCount;
-    let endIndex = currentIndex + halfCount;
+    const clampedIndex = Math.max(0, Math.min(currentIndex, totalImages - 1));
+    const lastWindowStart = totalImages - maxVisible;
+    const startIndex = Math.min(
+      Math.max(0, clampedIndex - maxVisible + 1),
+      lastWindowStart
+    );
 
-    if (startIndex < 0) {
-      endIndex -= startIndex;
-      startIndex = 0;
-    }
-
-    if (endIndex >= totalImages) {
-      startIndex = Math.max(0, startIndex - (endIndex - totalImages + 1));
-      endIndex = totalImages - 1;
-    }
-
-    if (endIndex - startIndex + 1 > maxVisible) {
-      endIndex = startIndex + maxVisible - 1;
-    }
-
-    return Array.from({ length: endIndex - startIndex + 1 }, (_, i) => startIndex + i);
+    return Array.from({ length: maxVisible }, (_, i) => startIndex + i);
   }, [currentIndex, totalImages, maxVisible]);
 };
 
@@ -98,18 +91,18 @@ export const useVisibleIndicators = (currentIndex: number, totalImages: number, 
 export const useNavigation = (
   images: ImageType[], 
   currentIndex: number, 
-  setCurrentIndex: (index: number) => void,
+  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>,
   isTransitioning: boolean
 ) => {
   const prevImage = useCallback(() => {
     if (isTransitioning || images.length === 0) return;
-    setCurrentIndex(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
-  }, [isTransitioning, images.length, currentIndex, setCurrentIndex]);
+    setCurrentIndex(prevIndex => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
+  }, [isTransitioning, images.length, setCurrentIndex]);
 
   const nextImage = useCallback(() => {
     if (images.length === 0) return;
-    setCurrentIndex((currentIndex + 1) % images.length);
-  }, [images.length, currentIndex, setCurrentIndex]);
+    setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
+  }, [images.length, setCurrentIndex]);
 
   const getAdjacentImages = useCallback(() => {
     if (images.length === 0) return { prevImage: null, nextImage: null };

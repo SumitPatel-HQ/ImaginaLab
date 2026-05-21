@@ -19,7 +19,6 @@ interface TouchHandlerHandlers {
   onTouchEnd: () => void;
 }
 
-const SWIPE_THRESHOLD = 0;
 const VELOCITY_THRESHOLD = 0.02;
 const SWIPE_RESISTANCE = 0.2;
 const SPRING_ANIMATION_DURATION = 100;
@@ -139,6 +138,7 @@ export const useTouchHandler = ({
     
     const touch = e.targetTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
+    const resistedDeltaX = deltaX * SWIPE_RESISTANCE;
     
     e.preventDefault();
     
@@ -152,7 +152,6 @@ export const useTouchHandler = ({
     
     lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
     
-    const resistedDeltaX = deltaX * SWIPE_RESISTANCE;
     const direction = deltaX < 0 ? 'left' : 'right';
     
     if (swipeDirectionRef.current !== direction) {
@@ -162,11 +161,7 @@ export const useTouchHandler = ({
     const progress = Math.min(Math.abs(deltaX) / (screenWidth * 0.1), 1);
     setSwipeProgress(progress);
     setDragOffset(resistedDeltaX);
-    
-    if (progress > 0.7 && !isTransitioning) {
-      animateSwipeCompletion(direction);
-    }
-  }, [isDragging, isTransitioning, screenWidth, animateSwipeCompletion]);
+  }, [isDragging, isTransitioning, screenWidth]);
 
   const onTouchEnd = useCallback(() => {
     if (!isDragging || touchStartRef.current === null || isTransitioning) {
@@ -183,7 +178,7 @@ export const useTouchHandler = ({
     const deltaX = touchEnd.x - touchStartRef.current.x;
     const velocity = Math.abs(velocityXRef.current);
     const isQuickSwipe = velocity > VELOCITY_THRESHOLD;
-    const effectiveThreshold = isQuickSwipe ? 1 : SWIPE_THRESHOLD;
+    const effectiveThreshold = isQuickSwipe ? 1 : Math.max(screenWidth * 0.15, 48);
     
     setIsDragging(false);
     
@@ -197,7 +192,7 @@ export const useTouchHandler = ({
     lastTouchRef.current = null;
     touchStartTimeRef.current = null;
     velocityXRef.current = 0;
-  }, [isDragging, isTransitioning, animateSwipeCompletion, animateSpringReset]);
+  }, [isDragging, isTransitioning, screenWidth, animateSwipeCompletion, animateSpringReset]);
 
   return {
     isDragging,

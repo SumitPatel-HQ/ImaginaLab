@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import logger from '../../utils/logger';
 import type { ImageKitImage } from '../../services/ImageKit';
 import { getFallbackIndex, addImageToArray } from './randomUtils';
 
@@ -20,7 +21,7 @@ export const useRandomImage = (
     
     // Check if we have images to work with
     if (images.length === 0) {
-      console.warn('⚠️ No images available for shuffle');
+      logger.warn('⚠️ No images available for shuffle');
       return undefined;
     }
     
@@ -28,19 +29,19 @@ export const useRandomImage = (
     
     try {
       // NEW: Use API to get all available files for random selection
-      console.log('🔍 Fetching all files from API for random shuffle...');
+      logger.log('🔍 Fetching all files from API for random shuffle...');
       
       try {
         const { getAllImagesFromAPI } = await import('../../services/ImageKit');
         const allAvailableImages = await getAllImagesFromAPI();
         
         if (allAvailableImages.length === 0) {
-          console.error('❌ No images found from API, cannot shuffle');
+          logger.error('❌ No images found from API, cannot shuffle');
           setShuffleLoading(false);
           return undefined;
         }
         
-        console.log(`✅ Found ${allAvailableImages.length} total images from API`);
+        logger.log(`✅ Found ${allAvailableImages.length} total images from API`);
         setTotalAvailableImages(allAvailableImages.length);
         
         // Pick a random image from all available images (excluding current)
@@ -63,7 +64,7 @@ export const useRandomImage = (
         const result = addImageToArray(images, randomImageData);
         
         setShuffleLoading(false);
-        console.log(`✅ Random image selected: ${randomImageData.fileName || randomImageData.id}`);
+        logger.log(`✅ Random image selected: ${randomImageData.fileName || randomImageData.id}`);
         
         return {
           index: result.index,
@@ -71,8 +72,8 @@ export const useRandomImage = (
         };
         
       } catch (apiError) {
-        console.error('❌ API-based random failed:', apiError);
-        console.log('🔄 Falling back to current images array...');
+        logger.error('❌ API-based random failed:', apiError);
+        logger.log('🔄 Falling back to current images array...');
         
         // Fallback: pick from current images
         const fallbackIndex = getFallbackIndex(images, currentIndex);
@@ -90,7 +91,7 @@ export const useRandomImage = (
       }
       
     } catch (error) {
-      console.error('Error in random shuffle:', error);
+      logger.error('Error in random shuffle:', error);
       setShuffleLoading(false);
       
       const fallbackIndex = getFallbackIndex(images, currentIndex);

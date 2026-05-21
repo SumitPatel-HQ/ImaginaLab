@@ -63,7 +63,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
   }
   
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-gray-800 to-indigo-900 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900 flex items-center justify-center">
       <div className={`bg-black/40 backdrop-blur-md p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 ${shake ? 'animate-shake' : ''}`}>
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mb-6">

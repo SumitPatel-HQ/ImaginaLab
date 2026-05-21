@@ -1,47 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Gallery from './components/Gallery';
 import PasswordProtection from './components/PasswordProtection';
 import useSecurityProtection from './hooks/useSecurity';
 
+const PASSWORD = import.meta.env.VITE_PASSWORD_HERE;
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  // Get password from environment variable
-  const PASSWORD = import.meta.env.VITE_PASSWORD_HERE;
-  
-  // Use the security protection hook
-  const { isBlurred, unblur, blurClassName } = useSecurityProtection({
+  const { isBlurred, blurClassName, unblur } = useSecurityProtection({
     onSuspiciousActivity: () => setIsAuthenticated(false),
   });
   
-  // Add additional security by resetting auth state when window gains focus
+  const handleAuthentication = useCallback(() => {
+    setIsAuthenticated(true);
+    unblur();
+  }, [unblur]);
+  
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // If the page becomes visible after being hidden
       if (document.visibilityState === 'visible' && !isAuthenticated) {
-        // This helps synchronize auth state across tabs
         sessionStorage.setItem('session_expired', 'true');
         sessionStorage.removeItem('session_expired');
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', () => setIsAuthenticated(false));
+    const handleFocus = () => setIsAuthenticated(false);
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', () => setIsAuthenticated(false));
+      window.removeEventListener('focus', handleFocus);
     };
   }, [isAuthenticated]);
   
-  const handleAuthentication = () => {
-    setIsAuthenticated(true);
-    unblur(); // Clear any blur when authentication succeeds
-  };
-
   return (
     <div className={`min-h-screen bg-gray-900 dark:bg-gray-900 ${isBlurred ? blurClassName : ''}`}>
-      <Gallery />
+       <Gallery />
     </div>
   );
 }

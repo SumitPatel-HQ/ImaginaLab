@@ -43,6 +43,7 @@ export const useGalleryState = () => {
   // Touch handling
   const { 
     isDragging,
+    dragOffset,
     onTouchStart, 
     onTouchMove, 
     onTouchEnd 
@@ -90,6 +91,7 @@ export const useGalleryState = () => {
     // Device info
     isMobile,
     isDragging,
+    dragOffset,
     
     // Refs
     galleryRef,

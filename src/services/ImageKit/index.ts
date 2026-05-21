@@ -1,4 +1,5 @@
 // Main ImageKit service - Clean public API with flexible file support
+import logger from '../../utils/logger';
 import type { ImageKitImage } from './types';
 import { findImageRange, getEstimatedImageCount, getTotalImageCount } from './discovery';
 import { 
@@ -27,32 +28,32 @@ export { getAllFilesFromFolder, isImageFile, isVideoFile, getSupportedFileTypes 
 
 // NEW: Get all images using ImageKit API (supports any file type and filename)
 export const getAllImagesFromAPI = async (): Promise<ImageKitImage[]> => {
-  console.log('🚀 Fetching images from ImageKit API...');
+  logger.log('🚀 Fetching images from ImageKit API...');
   
   try {
     const images = await discoverAllFilesFromAPI();
-    console.log(`✅ Successfully loaded ${images.length} images from API`);
+    logger.log(`✅ Successfully loaded ${images.length} images from API`);
     return images;
   } catch (error) {
-    console.error('Error fetching from API, falling back to legacy method:', error);
+    logger.error('Error fetching from API, falling back to legacy method:', error);
     return getAllImagesWithRangeDetection();
   }
 };
 
 // Get all images with smart range detection (LEGACY - backward compatibility)
 export const getAllImagesWithRangeDetection = async (): Promise<ImageKitImage[]> => {
-  console.log('🔍 Detecting actual image range...');
+  logger.log('🔍 Detecting actual image range...');
   
   try {
     const range = await findImageRange();
-    console.log(`📊 Found image range: ${range.min} to ${range.max} (${range.max} total images)`);
+    logger.log(`📊 Found image range: ${range.min} to ${range.max} (${range.max} total images)`);
     
     const images = await getAllImagesInRange(range.min, range.max);
-    console.log(`✅ Successfully loaded ${images.length} out of ${range.max} possible images`);
+    logger.log(`✅ Successfully loaded ${images.length} out of ${range.max} possible images`);
     return images;
     
   } catch (error) {
-    console.error('Error in smart range detection, falling back to sequential discovery:', error);
+    logger.error('Error in smart range detection, falling back to sequential discovery:', error);
     return discoverAvailableImages(500);
   }
 };

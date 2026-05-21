@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAllImagesFromAPI, type ImageKitImage as Image } from '../../services/ImageKit';
+import logger from '../../utils/logger';
 
 interface UseImageGridReturn {
   allImages: Image[];
@@ -23,16 +24,15 @@ export const useImageGrid = (initialImages: Image[]): UseImageGridReturn => {
     const loadAllImages = async () => {
       try {
         setIsInitialLoading(true);
-        console.log('🔍 Discovering all available images from API...');
+        logger.log('🔍 Discovering all available images from API...');
         const allDiscoveredImages = await getAllImagesFromAPI();
-        console.log(`✅ Found ${allDiscoveredImages.length} total images from API`);
+        logger.log(`✅ Found ${allDiscoveredImages.length} total images from API`);
         
         setAllImages(allDiscoveredImages);
         setVisibleImages(allDiscoveredImages.slice(0, INITIAL_LOAD));
         setHasMore(allDiscoveredImages.length > INITIAL_LOAD);
       } catch (error) {
-        console.error('Error loading images:', error);
-        // Fallback to initial images if discovery fails
+        logger.error('Error loading images:', error);
         setAllImages(initialImages);
         setVisibleImages(initialImages.slice(0, INITIAL_LOAD));
         setHasMore(initialImages.length > INITIAL_LOAD);
@@ -51,9 +51,8 @@ export const useImageGrid = (initialImages: Image[]): UseImageGridReturn => {
       return;
     }
 
-    console.log(`📦 Loading more images... (${visibleImages.length}/${allImages.length})`);
+    logger.log(`📦 Loading more images... (${visibleImages.length}/${allImages.length})`);
     
-    // Load next batch with small delay for smooth experience
     setTimeout(() => {
       const nextImages = allImages.slice(
         visibleImages.length, 
@@ -62,7 +61,6 @@ export const useImageGrid = (initialImages: Image[]): UseImageGridReturn => {
       
       setVisibleImages(prev => [...prev, ...nextImages]);
       
-      // Check if we have more to load
       setHasMore(visibleImages.length + nextImages.length < allImages.length);
     }, 300);
   }, [visibleImages.length, allImages]);

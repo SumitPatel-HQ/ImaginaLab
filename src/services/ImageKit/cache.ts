@@ -1,27 +1,29 @@
 // ImageKit cache management
-import { CONFIG, IMAGEKIT_URL_ENDPOINT } from './config';
+import logger from '../../utils/logger';
+import { CONFIG, IMAGEKIT_URL_ENDPOINT, getImageKitConfigSignature } from './config';
 
-// Initialize cache from localStorage if available
+const CACHE_NAMESPACE = getImageKitConfigSignature();
+const getCacheKey = () => `${CONFIG.CACHE_KEY}_${CACHE_NAMESPACE}`;
+
 let imageCache: Map<string, boolean>;
 
 try {
-  const cachedData = localStorage.getItem(CONFIG.CACHE_KEY);
+  const cachedData = localStorage.getItem(getCacheKey());
   if (cachedData) {
     imageCache = new Map(JSON.parse(cachedData));
   } else {
     imageCache = new Map<string, boolean>();
   }
 } catch (e) {
-  console.warn('Failed to load image cache from localStorage:', e);
+  logger.warn('Failed to load image cache from localStorage:', e);
   imageCache = new Map<string, boolean>();
 }
 
-// Save cache to localStorage
 const saveCache = () => {
   try {
-    localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify(Array.from(imageCache.entries())));
+    localStorage.setItem(getCacheKey(), JSON.stringify(Array.from(imageCache.entries())));
   } catch (e) {
-    console.warn('Failed to save image cache to localStorage:', e);
+    logger.warn('Failed to save image cache to localStorage:', e);
   }
 };
 

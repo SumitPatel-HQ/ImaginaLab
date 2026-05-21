@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import logger from '../../utils/logger';
 import { 
   getAllImagesWithRangeDetection,
   getAllImagesFromAPI, // NEW: API-based discovery for any filename
@@ -28,11 +29,11 @@ export const useImageLoader = (): UseImageLoaderReturn => {
     try {
       // Skip if we already have images or are already loading
       if (images.length > 0) {
-        console.log('✅ Images already loaded, skipping...');
+        logger.log('✅ Images already loaded, skipping...');
         return;
       }
       if (loadingRef.current) {
-        console.log('⏳ Already loading images, skipping duplicate request...');
+        logger.log('⏳ Already loading images, skipping duplicate request...');
         return;
       }
       
@@ -42,14 +43,14 @@ export const useImageLoader = (): UseImageLoaderReturn => {
       // Try to recover from cache first
       const cached = getCachedImages();
       if (cached && cached.length > 0) {
-        console.log(`🗄️ Recovered ${cached.length} images from cache`);
+        logger.log(`🗄️ Recovered ${cached.length} images from cache`);
         setImages(cached);
         setTotalAvailableImages(cached.length);
         setLoading(false);
         return;
       }
 
-      console.log('🚀 Loading images using API-based discovery...');
+      logger.log('🚀 Loading images using API-based discovery...');
 
       // NEW: Use API to fetch ALL files with any name/type
       const allImages = await getAllImagesFromAPI();
@@ -61,19 +62,19 @@ export const useImageLoader = (): UseImageLoaderReturn => {
         setTotalAvailableImages(allImages.length);
       } else {
         // Safe fallback if API returns empty
-        console.warn('⚠️ API returned empty images, keeping existing state or rendering blank');
+        logger.warn('⚠️ API returned empty images, keeping existing state or rendering blank');
         setImages([]);
         setTotalAvailableImages(0);
       }
       
-      console.log(`✅ Loaded ${allImages ? allImages.length : 0} images from ImageKit API`);
+      logger.log(`✅ Loaded ${allImages ? allImages.length : 0} images from ImageKit API`);
       
     } catch (error) {
-      console.error('Error loading images:', error);
+      logger.error('Error loading images:', error);
       // Try cache recovery on error
       const cached = getCachedImages();
       if (cached && cached.length > 0) {
-        console.log('🗄️ Recovered images from cache after API error');
+        logger.log('🗄️ Recovered images from cache after API error');
         setImages(cached);
         setTotalAvailableImages(cached.length);
       }
@@ -87,19 +88,19 @@ export const useImageLoader = (): UseImageLoaderReturn => {
   const loadAllImagesWithSmartDetection = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('🚀 Using API-based discovery for all files...');
+      logger.log('🚀 Using API-based discovery for all files...');
       
       const allImages = await getAllImagesFromAPI();
       if (allImages && allImages.length > 0) {
         cacheImages(allImages);
         setImages(allImages);
         setTotalAvailableImages(allImages.length);
-        console.log(`✅ Loaded ${allImages.length} images from ImageKit API!`);
+        logger.log(`✅ Loaded ${allImages.length} images from ImageKit API!`);
       }
     } catch (error) {
-      console.error('Error loading images from API:', error);
+      logger.error('Error loading images from API:', error);
       // Fallback to legacy method if API fails
-      console.log('⚠️ Falling back to legacy discovery...');
+      logger.log('⚠️ Falling back to legacy discovery...');
       try {
         const allImages = await getAllImagesWithRangeDetection();
         if (allImages && allImages.length > 0) {
@@ -108,7 +109,7 @@ export const useImageLoader = (): UseImageLoaderReturn => {
           setTotalAvailableImages(allImages.length);
         }
       } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
+        logger.error('Fallback also failed:', fallbackError);
       }
     } finally {
       setLoading(false);

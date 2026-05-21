@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { preloadImageKit as preloadImage } from '../services/ImageKit';
 import type { ImageKitImage as Image } from '../services/ImageKit';
 
@@ -9,20 +9,13 @@ export interface ImageLoadingState {
 }
 
 export const useImageState = (image: Image | null, prevImage?: Image | null, nextImage?: Image | null) => {
-  const [loadingState, setLoadingState] = useState<ImageLoadingState>({
+  const getInitialState = useCallback((): ImageLoadingState => ({
     loaded: false,
     error: false,
     placeholderLoaded: false,
-  });
+  }), []);
 
-  // Reset loading state when image changes
-  useEffect(() => {
-    setLoadingState({
-      loaded: false,
-      error: false,
-      placeholderLoaded: false,
-    });
-  }, [image]);
+  const [loadingState, setLoadingState] = useState<ImageLoadingState>(getInitialState);
 
   // Preload adjacent images
   useEffect(() => {
@@ -47,11 +40,11 @@ export const useImageState = (image: Image | null, prevImage?: Image | null, nex
   }, [image, nextImage, prevImage]);
 
   const handleImageLoad = useCallback(() => {
-    setLoadingState(prev => ({ ...prev, loaded: true }));
+    setLoadingState({ loaded: true, error: false, placeholderLoaded: false });
   }, []);
 
   const handleImageError = useCallback(() => {
-    setLoadingState(prev => ({ ...prev, error: true }));
+    setLoadingState({ loaded: false, error: true, placeholderLoaded: false });
   }, []);
 
   const handlePlaceholderLoad = useCallback(() => {

@@ -1,4 +1,5 @@
 import { IMAGEKIT_URL_ENDPOINT, createImageTransformations, getOptimizedImageUrl } from '../../services/ImageKit/config';
+import logger from '../../utils/logger';
 
 // Modal configuration
 export const MODAL_CONFIG = {
@@ -40,21 +41,18 @@ export const MODAL_CONFIG = {
   }
 } as const;
 
-// Helper function to get optimized modal image URL with adaptive quality
 export const getImageKitUrl = (src: string): string => {
-  console.log('🖼️ getImageKitUrl input:', src);
+  logger.log('🖼️ getImageKitUrl input:', src);
   
   if (src.startsWith('http')) {
-    // Extract the path from the URL
     const imagePath = src.split('?')[0].replace(IMAGEKIT_URL_ENDPOINT, '');
-    console.log('📍 Extracted path:', imagePath);
-    // Use ultra-high quality for modal images
+    logger.log('📍 Extracted path:', imagePath);
     const finalUrl = getOptimizedImageUrl(imagePath, createImageTransformations.ultra(1600));
-    console.log('✅ Final modal URL:', finalUrl);
+    logger.log('✅ Final modal URL:', finalUrl);
     return finalUrl;
   }
   const finalUrl = getOptimizedImageUrl(src, createImageTransformations.ultra(1600));
-  console.log('✅ Final modal URL (no http):', finalUrl);
+  logger.log('✅ Final modal URL (no http):', finalUrl);
   return finalUrl;
 };
 
@@ -64,24 +62,20 @@ export const getPlaceholderUrl = (src: string): string => {
   return getOptimizedImageUrl(imagePath, createImageTransformations.placeholder(20));
 };
 
-// Helper function to generate high-quality responsive image URLs with WebP
 export const getResponsiveSrcSet = (src: string): string => {
-  console.log('📸 getResponsiveSrcSet input:', src);
+  logger.log('📸 getResponsiveSrcSet input:', src);
   
-  // Extract just the path part (remove endpoint if present, and remove query params)
   let imagePath = src.split('?')[0];
   
-  // Remove the endpoint if it's a full URL
   if (imagePath.startsWith('http')) {
     imagePath = imagePath.replace(IMAGEKIT_URL_ENDPOINT, '');
   }
   
-  // Ensure path starts with /
   if (!imagePath.startsWith('/')) {
     imagePath = '/' + imagePath;
   }
   
-  console.log('📍 Extracted path for srcset:', imagePath);
+  logger.log('📍 Extracted path for srcset:', imagePath);
   
   const srcset = [
     `${getOptimizedImageUrl(imagePath, 'tr=q-85,f-webp,w-640')} 640w`,
@@ -91,7 +85,7 @@ export const getResponsiveSrcSet = (src: string): string => {
     `${getOptimizedImageUrl(imagePath, 'tr=q-95,f-webp,w-2560')} 2560w`
   ].join(', ');
   
-  console.log('✅ Generated srcset:', srcset.substring(0, 200) + '...');
+  logger.log('✅ Generated srcset:', srcset.substring(0, 200) + '...');
   
   return srcset;
 };

@@ -9,6 +9,7 @@ interface MainGalleryViewProps {
   images: ImageKitImage[];
   currentIndex: number;
   isDragging: boolean;
+  dragOffset: number;
   isMobile: boolean;
   isTransitioning: boolean;
   showModal: boolean;
@@ -36,6 +37,7 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
   images,
   currentIndex,
   isDragging,
+  dragOffset,
   isMobile,
   isTransitioning,
   showModal,
@@ -57,8 +59,8 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
 }) => (
   <div 
     ref={galleryRef}
-    className="fixed inset-0 flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-indigo-900 overflow-hidden"
-    style={{overscrollBehavior: 'none'}}
+    className="fixed inset-0 flex flex-col bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900 overflow-hidden"
+    style={{ overscrollBehavior: 'none', touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
   >
     <div 
       className={`w-full h-full relative ${isTransitioning ? 'pointer-events-none' : ''}`}
@@ -89,8 +91,7 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
             return (
               <div
                 key={image.id || `fallback-img-key-${index}`}
-                className="absolute inset-0 cursor-pointer"
-                onClick={openImageModal}
+                className="absolute inset-0"
               >
                 <Card
                   image={image}
@@ -99,6 +100,8 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
                   totalImages={images.length}
                   isDragging={isDragging}
                   isMobile={isMobile}
+                  dragOffset={dragOffset}
+                  onClick={index === safeCurrentIndex ? openImageModal : undefined}
                 />
               </div>
             );
@@ -124,6 +127,7 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
     <AnimatePresence>
       {showModal && (
         <ImageModal
+          key={images[currentIndex]?.id ?? currentIndex}
           image={images[currentIndex]}
           onClose={closeImageModal}
           onNext={nextImage}

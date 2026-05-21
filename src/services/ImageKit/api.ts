@@ -1,13 +1,12 @@
 // ImageKit API service for fetching files using List Files API
-// This enables support for any file type and any filename (including special characters)
+import logger from '../../utils/logger';
 
 export const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || '';
 export const IMAGEKIT_PRIVATE_KEY = import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY || '';
 export const IMAGEKIT_API_ENDPOINT = 'https://api.imagekit.io/v1/files';
 
-// Validate API credentials
 if (!IMAGEKIT_PUBLIC_KEY || !IMAGEKIT_PRIVATE_KEY) {
-  console.warn('⚠️ ImageKit API credentials not configured. File listing may not work.');
+  logger.warn('⚠️ ImageKit API credentials not configured. File listing may not work.');
 }
 
 // ImageKit File object from List Files API
@@ -77,7 +76,7 @@ export const listImageKitFiles = async (params: ListFilesParams = {}): Promise<L
     const authString = btoa(`${IMAGEKIT_PRIVATE_KEY}:`);
     
     const url = `${IMAGEKIT_API_ENDPOINT}?${queryParams.toString()}`;
-    console.log(`🔗 Calling ImageKit API: ${url.replace(IMAGEKIT_API_ENDPOINT, 'API')}`);
+    logger.log(`🔗 Calling ImageKit API: ${url.replace(IMAGEKIT_API_ENDPOINT, 'API')}`);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -89,13 +88,13 @@ export const listImageKitFiles = async (params: ListFilesParams = {}): Promise<L
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ ImageKit API error (${response.status}):`, errorText);
+      logger.error(`❌ ImageKit API error (${response.status}):`, errorText);
       throw new Error(`ImageKit API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
     
-    console.log(`📦 API Response: ${Array.isArray(data) ? data.length : 0} files`);
+    logger.log(`📦 API Response: ${Array.isArray(data) ? data.length : 0} files`);
     
     return {
       files: Array.isArray(data) ? data : [],
@@ -104,9 +103,9 @@ export const listImageKitFiles = async (params: ListFilesParams = {}): Promise<L
       limit,
     };
   } catch (error) {
-    console.error('❌ Error fetching files from ImageKit:', error);
+    logger.error('❌ Error fetching files from ImageKit:', error);
     if (error instanceof Error) {
-      console.error('Error details:', error.message);
+      logger.error('Error details:', error.message);
     }
     throw error;
   }
@@ -122,7 +121,7 @@ export const getAllFilesFromFolder = async (folderPath: string): Promise<ImageKi
   const limit = 1000;
   let hasMore = true;
 
-  console.log(`📂 Fetching all files from folder: ${folderPath}`);
+  logger.log(`📂 Fetching all files from folder: ${folderPath}`);
 
   try {
     while (hasMore) {
@@ -138,19 +137,18 @@ export const getAllFilesFromFolder = async (folderPath: string): Promise<ImageKi
       hasMore = response.hasMore;
       skip += limit;
 
-      console.log(`📊 Fetched ${response.files.length} files (total: ${allFiles.length})`);
+      logger.log(`📊 Fetched ${response.files.length} files (total: ${allFiles.length})`);
 
-      // Safety break to prevent infinite loops
       if (skip > 10000) {
-        console.warn('⚠️ Reached pagination limit of 10,000 files');
+        logger.warn('⚠️ Reached pagination limit of 10,000 files');
         break;
       }
     }
 
-    console.log(`✅ Successfully fetched ${allFiles.length} files from ${folderPath}`);
+    logger.log(`✅ Successfully fetched ${allFiles.length} files from ${folderPath}`);
     return allFiles;
   } catch (error) {
-    console.error('❌ Error in getAllFilesFromFolder:', error);
+    logger.error('❌ Error in getAllFilesFromFolder:', error);
     throw error;
   }
 };
