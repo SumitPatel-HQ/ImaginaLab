@@ -3,9 +3,9 @@ import logger from '../../utils/logger';
 
 export const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || '';
 export const IMAGEKIT_PRIVATE_KEY = import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY || '';
-export const IMAGEKIT_API_ENDPOINT = 'https://api.imagekit.io/v1/files';
+export const IMAGEKIT_API_ENDPOINT = import.meta.env.VITE_IMAGEKIT_API_ENDPOINT || '/api/files';
 
-if (!IMAGEKIT_PUBLIC_KEY || !IMAGEKIT_PRIVATE_KEY) {
+if (!IMAGEKIT_API_ENDPOINT.startsWith('/') && (!IMAGEKIT_PUBLIC_KEY || !IMAGEKIT_PRIVATE_KEY)) {
   logger.warn('⚠️ ImageKit API credentials not configured. File listing may not work.');
 }
 
@@ -72,18 +72,22 @@ export const listImageKitFiles = async (params: ListFilesParams = {}): Promise<L
     if (fileType !== 'all') queryParams.append('fileType', fileType);
     if (tags.length > 0) queryParams.append('tags', tags.join(','));
 
-    // Basic Auth: username is Private Key, password is empty string
-    const authString = btoa(`${IMAGEKIT_PRIVATE_KEY}:`);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // If using direct ImageKit endpoint, provide Basic Auth header
+    if (!IMAGEKIT_API_ENDPOINT.startsWith('/') && IMAGEKIT_PRIVATE_KEY) {
+      const authString = btoa(`${IMAGEKIT_PRIVATE_KEY}:`);
+      headers['Authorization'] = `Basic ${authString}`;
+    }
     
     const url = `${IMAGEKIT_API_ENDPOINT}?${queryParams.toString()}`;
-    logger.log(`🔗 Calling ImageKit API: ${url.replace(IMAGEKIT_API_ENDPOINT, 'API')}`);
+    logger.log(`🔗 Calling ImageKit API: ${url}`);
 
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Authorization': `Basic ${authString}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {

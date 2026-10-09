@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Minus, Plus } from 'lucide-react';
 
 interface HeaderProps {
   onClose: () => void;
@@ -89,12 +89,10 @@ const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={() => onGridDensityChange(Math.max(1, gridDensity - 1))}
             disabled={gridDensity <= 1}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             aria-label="Decrease density"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-4 h-4">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-</svg>
+            <Minus className="w-4 h-4" />
 
           </button>
           
@@ -120,12 +118,10 @@ const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={() => onGridDensityChange(Math.min(5, gridDensity + 1))}
             disabled={gridDensity >= 5}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             aria-label="Increase density"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
+            <Plus className="w-4 h-4" />
           </button>
         </div>
       </div>

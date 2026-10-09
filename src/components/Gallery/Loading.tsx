@@ -38,17 +38,6 @@ export const LoadingState: React.FC = () => (
           <Skeleton className="w-12 h-12 rounded-full" shimmer />
           <Skeleton className="w-24 h-12 rounded-full" shimmer />
         </div>
-        
-        {/* Image Indicators Skeleton */}
-        <div className="flex space-x-2 md:space-x-3 overflow-hidden px-4 py-2 bg-black/40 backdrop-blur-sm rounded-full">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Skeleton 
-              key={index}
-              className={`rounded-full ${index === 3 ? 'w-8 h-2 md:h-3' : 'w-2 h-2 md:h-3 md:w-3'}`}
-              shimmer 
-            />
-          ))}
-        </div>
       </div>
     </div>
   </div>

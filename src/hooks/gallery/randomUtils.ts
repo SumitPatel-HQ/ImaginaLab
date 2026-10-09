@@ -40,12 +40,12 @@ export const generateRandomNumber = (max: number, exclude: number | null, maxAtt
   return randomNumber;
 };
 
-// Fallback to existing images when random fails
+// Fallback to existing images when random fails (guaranteed different index)
 export const getFallbackIndex = (images: ImageKitImage[], currentIndex: number): number | null => {
-  if (images.length <= 1) return null;
+  if (!images || images.length <= 1) return null;
   
-  const possibleIndices = [...Array(images.length).keys()].filter(i => i !== currentIndex);
-  return possibleIndices[Math.floor(Math.random() * possibleIndices.length)];
+  const safeCurrentIndex = (currentIndex >= 0 && currentIndex < images.length) ? currentIndex : 0;
+  return (safeCurrentIndex + 1 + Math.floor(Math.random() * (images.length - 1))) % images.length;
 };
 
 // Check if image already exists in array

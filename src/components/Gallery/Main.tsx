@@ -19,6 +19,7 @@ interface MainGalleryViewProps {
   };
   visibleIndicators: number[];
   loading: boolean;
+  shuffleLoading?: boolean;
   galleryRef: React.RefObject<HTMLDivElement | null>;
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchMove: (e: React.TouchEvent) => void;
@@ -44,6 +45,7 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
   adjacentImages,
   visibleIndicators,
   loading,
+  shuffleLoading = false,
   galleryRef,
   onTouchStart,
   onTouchMove,
@@ -117,6 +119,7 @@ export const MainGalleryView: React.FC<MainGalleryViewProps> = ({
         onOpenGrid={openGrid}
         onLoadAll={loadAllImagesWithSmartDetection}
         loading={loading}
+        shuffleLoading={shuffleLoading}
         currentIndex={currentIndex}
         visibleIndicators={visibleIndicators}
         onIndicatorClick={setCurrentIndex}

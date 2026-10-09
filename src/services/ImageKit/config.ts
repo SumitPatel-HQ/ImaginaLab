@@ -79,10 +79,21 @@ export const getImageKitPath = (filenameOrNumber: string | number): string => {
 
 // Generate optimized image URL with transformations
 export const getOptimizedImageUrl = (
-  imagePath: string, 
+  imagePathOrUrl: string, 
   transformation: string
 ): string => {
-  return `${IMAGEKIT_URL_ENDPOINT}${imagePath}?${transformation}`;
+  if (!imagePathOrUrl) return '';
+
+  const endpoint = (IMAGEKIT_URL_ENDPOINT || '').replace(/\/+$/, '');
+
+  // If already a full URL, strip existing query params and attach transformation
+  if (imagePathOrUrl.startsWith('http://') || imagePathOrUrl.startsWith('https://')) {
+    const cleanUrl = imagePathOrUrl.split('?')[0];
+    return `${cleanUrl}?${transformation}`;
+  }
+
+  const cleanPath = imagePathOrUrl.startsWith('/') ? imagePathOrUrl : `/${imagePathOrUrl}`;
+  return `${endpoint}${cleanPath}?${transformation}`;
 };
 
 // Test if an image exists at the given path (with fast, tiny preview)

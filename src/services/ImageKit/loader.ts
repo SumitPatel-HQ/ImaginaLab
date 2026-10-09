@@ -1,7 +1,7 @@
 // Image loading and metadata management
 import logger from '../../utils/logger';
 import type { ImageKitImage, ImageMetadata, BatchResult } from './types';
-import { CONFIG, IMAGEKIT_URL_ENDPOINT, getImageKitPath, testImageExists, createImageTransformations, getOptimizedImageUrl, getDeviceType, getOptimalQuality } from './config';
+import { CONFIG, IMAGEKIT_URL_ENDPOINT, IMAGEKIT_PATH_PREFIX, getImageKitPath, testImageExists, createImageTransformations, getOptimizedImageUrl, getDeviceType, getOptimalQuality } from './config';
 import { isImageLoaded, preloadImageKit } from './cache';
 import { getAllFilesFromFolder, getFileExtension, getFileNameWithoutExtension } from './api';
 
@@ -50,7 +50,7 @@ export const discoverAllFilesFromAPI = async (): Promise<ImageKitImage[]> => {
   logger.log('🚀 Using ImageKit API to discover all files...');
   
   try {
-    const folderPath = import.meta.env.VITE_IMAGEKIT_PATH_PREFIX || '/AP/';
+    const folderPath = IMAGEKIT_PATH_PREFIX;
     logger.log(`📂 Fetching files from: ${folderPath}`);
     
     const files = await getAllFilesFromFolder(folderPath);

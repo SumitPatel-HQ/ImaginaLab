@@ -56,7 +56,10 @@ export const preloadImageKit = (imagePath: string): Promise<boolean> => {
     
     img.onload = onLoad;
     img.onerror = onError;
-    img.src = `${IMAGEKIT_URL_ENDPOINT}${imagePath}`;
+    const endpoint = (IMAGEKIT_URL_ENDPOINT || '').replace(/\/+$/, '');
+    img.src = (imagePath.startsWith('http://') || imagePath.startsWith('https://'))
+      ? imagePath
+      : `${endpoint}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
     
     if (img.complete) {
       onLoad();

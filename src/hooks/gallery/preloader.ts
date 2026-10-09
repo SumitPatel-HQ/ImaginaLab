@@ -14,15 +14,21 @@ export const useImagePreloader = (
 ): UseImagePreloaderReturn => {
   const { PRELOAD_DELAY } = GALLERY_CONFIG;
 
+  const getAbsoluteUrl = useCallback((src: string) => {
+    if (src.startsWith('http://') || src.startsWith('https://')) return src;
+    const endpoint = (IMAGEKIT_URL_ENDPOINT || '').replace(/\/+$/, '');
+    return `${endpoint}${src.startsWith('/') ? src : `/${src}`}`;
+  }, []);
+
   // Preload image function
   const preloadImage = useCallback((src: string): Promise<boolean> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve(true);
       img.onerror = () => resolve(false);
-      img.src = `${IMAGEKIT_URL_ENDPOINT}${src}`;
+      img.src = getAbsoluteUrl(src);
     });
-  }, []);
+  }, [getAbsoluteUrl]);
 
   const visibleImageIndices = useMemo(() => {
     if (images.length === 0) return [];
@@ -62,22 +68,22 @@ export const useImagePreloader = (
     
     const currentImageSrc = images[currentIndex].src;
     const preloader = new Image();
-    preloader.src = `${IMAGEKIT_URL_ENDPOINT}${currentImageSrc}`;
+    preloader.src = getAbsoluteUrl(currentImageSrc);
     
     const preloadAdjacent = () => {
       const prevIndex = (currentIndex - 1 + images.length) % images.length;
       const nextIndex = (currentIndex + 1) % images.length;
       
       const prevImage = new Image();
-      prevImage.src = `${IMAGEKIT_URL_ENDPOINT}${images[prevIndex].src}`;
+      prevImage.src = getAbsoluteUrl(images[prevIndex].src);
       
       const nextImage = new Image();
-      nextImage.src = `${IMAGEKIT_URL_ENDPOINT}${images[nextIndex].src}`;
+      nextImage.src = getAbsoluteUrl(images[nextIndex].src);
     };
     
     const timer = setTimeout(preloadAdjacent, PRELOAD_DELAY);
     return () => clearTimeout(timer);
-  }, [currentIndex, images, PRELOAD_DELAY]);
+  }, [currentIndex, images, PRELOAD_DELAY, getAbsoluteUrl]);
 
   return {
     visibleImageIndices,

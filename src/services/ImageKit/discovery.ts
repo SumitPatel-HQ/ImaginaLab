@@ -1,14 +1,14 @@
 // Image discovery algorithms
 import logger from '../../utils/logger';
 import type { ImageRange } from './types';
-import { CONFIG, getImageKitPath, testImageExists } from './config';
+import { CONFIG, getImageKitPath, testImageExists, IMAGEKIT_PATH_PREFIX } from './config';
 import { getAllFilesFromFolder } from './api';
 
 export const findImageRangeFromAPI = async (): Promise<ImageRange> => {
   logger.log('🔍 Using ImageKit API for range detection...');
   
   try {
-    const files = await getAllFilesFromFolder(import.meta.env.VITE_IMAGEKIT_PATH_PREFIX || '/AP/');
+    const files = await getAllFilesFromFolder(IMAGEKIT_PATH_PREFIX);
     logger.log(`✅ Found ${files.length} files from ImageKit API`);
     
     return {

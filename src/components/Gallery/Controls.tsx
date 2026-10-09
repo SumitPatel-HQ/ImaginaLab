@@ -1,6 +1,5 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Shuffle, Library } from 'lucide-react';
-import { SlideDotIndicators } from '../SlideDotIndicator';
 
 interface ControlsProps {
   onPrev: () => void;
@@ -9,6 +8,7 @@ interface ControlsProps {
   onOpenGrid: () => void;
   onLoadAll: () => void;
   loading: boolean;
+  shuffleLoading?: boolean;
   currentIndex: number;
   visibleIndicators: number[];
   onIndicatorClick: (index: number) => void;
@@ -19,9 +19,7 @@ const Controls: React.FC<ControlsProps> = React.memo(({
   onNext,
   onRandom,
   onOpenGrid,
-  currentIndex,
-  visibleIndicators,
-  onIndicatorClick
+  shuffleLoading = false,
 }) => {
   return (
     <>
@@ -47,10 +45,13 @@ const Controls: React.FC<ControlsProps> = React.memo(({
         <div className="flex justify-center gap-4">
           <button 
             onClick={onRandom}
-            className="p-3 rounded-full bg-black/30 hover:bg-black/50 text-white/80 backdrop-blur-xs transition-all duration-300 hover:scale-105 shadow-lg cursor-pointer"
+            disabled={shuffleLoading}
+            className={`p-3 rounded-full bg-black/30 hover:bg-black/50 text-white/80 backdrop-blur-xs transition-all duration-300 hover:scale-105 shadow-lg cursor-pointer ${
+              shuffleLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             aria-label="Random image"
           >
-            <Shuffle className="w-5 h-5" />
+            <Shuffle className={`w-5 h-5 transition-transform duration-300 ${shuffleLoading ? 'rotate-180 scale-90' : ''}`} />
           </button>
           
           <button 
@@ -64,14 +65,6 @@ const Controls: React.FC<ControlsProps> = React.memo(({
           
         
         </div>
-        
-        {/* Image Indicators */}
-        <SlideDotIndicators
-          indices={visibleIndicators}
-          activeIndex={currentIndex}
-          onSelect={onIndicatorClick}
-          className="flex items-center gap-2 md:gap-3 overflow-hidden rounded-full  bg-black/30 px-6 py-2 backdrop-blur-xs shadow-lg"
-        />
       </div>
     </>
   );
