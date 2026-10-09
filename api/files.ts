@@ -8,7 +8,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || process.env.VITE_IMAGEKIT_PRIVATE_KEY || '';
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || '';
   if (!privateKey) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');

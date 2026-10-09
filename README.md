@@ -65,7 +65,7 @@ VITE_PASSWORD_HERE=your_secure_password
 VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_id/
 VITE_IMAGEKIT_PATH_PREFIX=/YourFolderName/
 VITE_IMAGEKIT_PUBLIC_KEY=your_public_key
-VITE_IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_PRIVATE_KEY=your_private_key   # server-side only, never expose with VITE_ prefix
 ```
 
 ### 3. Development

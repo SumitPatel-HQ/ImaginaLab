@@ -49,7 +49,7 @@ function imagekitProxyPlugin(): Plugin {
     name: 'imagekit-proxy',
     configResolved(config) {
       const env = loadEnv(config.mode, process.cwd(), '');
-      privateKey = env.IMAGEKIT_PRIVATE_KEY || env.VITE_IMAGEKIT_PRIVATE_KEY || '';
+      privateKey = env.IMAGEKIT_PRIVATE_KEY || '';
     },
     configureServer(server) {
       server.middlewares.use('/api/files', handleApiRequest);
