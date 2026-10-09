@@ -69,6 +69,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // --- BYPASS: Vite development server internals, scripts, modules, and HMR ---
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.includes('node_modules') ||
+    url.search.includes('t=') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.endsWith('.tsx')
+  ) {
+    return;
+  }
+
   // --- HTML navigation: network-first, fall back to cached shell ---
   if (request.mode === 'navigate') {
     event.respondWith(

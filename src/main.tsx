@@ -9,13 +9,18 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>
 );
 
-// Register the PWA service worker in production only so Vite HMR is never
-// interrupted during local development. The sw.js explicitly bypasses all
-// /api/ proxy calls and external ImageKit media requests.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+// Register the PWA service worker so Chrome recognizes the app as installable.
+// The sw.js explicitly bypasses /api/ proxy calls, external ImageKit media, and Vite dev files.
+if ('serviceWorker' in navigator) {
+  const registerSW = () => {
     navigator.serviceWorker.register('/sw.js').catch((err) => {
       console.warn('[PWA] Service worker registration failed:', err);
     });
-  });
+  };
+
+  if (document.readyState === 'complete') {
+    registerSW();
+  } else {
+    window.addEventListener('load', registerSW);
+  }
 }
