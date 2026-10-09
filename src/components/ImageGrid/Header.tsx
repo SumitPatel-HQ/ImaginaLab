@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Shuffle } from 'lucide-react';
 
 interface HeaderProps {
   onClose: () => void;
@@ -7,13 +7,17 @@ interface HeaderProps {
   gridDensity: number;
   onGridDensityChange: (density: number) => void;
   onSliderStart: () => void;
+  onShuffle: () => void;
+  isShuffleDisabled?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
   onClose,
   gridDensity,
   onGridDensityChange,
-  onSliderStart
+  onSliderStart,
+  onShuffle,
+  isShuffleDisabled = false
 }) => {
   const sliderTrackRef = useRef<HTMLDivElement>(null);
   const initialThumbPosition = ((gridDensity - 1) / 4) * 100;
@@ -77,6 +81,16 @@ const Header: React.FC<HeaderProps> = ({
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="hidden sm:block">Back</span>
+        </button>
+        <button
+          onClick={onShuffle}
+          disabled={isShuffleDisabled}
+          aria-label="Shuffle gallery layout"
+          title="Shuffle gallery layout"
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-white/70 focus-visible:outline-offset-2"
+        >
+          <Shuffle className="w-5 h-5" aria-hidden="true" />
+          <span className="hidden sm:block">Shuffle</span>
         </button>
       </div>
 

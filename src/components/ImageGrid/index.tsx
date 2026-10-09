@@ -11,6 +11,7 @@ import { useModal } from './useModal';
 import { useSliderControl } from './slider';
 import { getGridClass, getGapClass } from './utils';
 import { buildMasonryLayout, getColumnCount } from './masonry';
+import { shuffleOrder } from './shuffle';
 import { useScreenWidth } from '../../hooks/useUtils';
 
 interface ImageGridProps {
@@ -39,6 +40,50 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   const { selectedImage, openModal, closeModal, goToNextImage, goToPrevImage } = useModal();
   const { handleSliderStart } = useSliderControl();
 
+  // Shuffle state: generation counter triggers exactly one reorder per activation.
+  // The backing `visibleImages` (infinite-scroll source of truth) is never reordered;
+  // only this derived ordered view is shuffled. Newly fetched pages append in fetch
+  // order after a shuffle; the user may reshuffle at any time.
+  const [shuffleGeneration, setShuffleGeneration] = useState(0);
+  const [orderedImages, setOrderedImages] = useState<Image[]>(() => visibleImages);
+  const [shuffleAnnouncement, setShuffleAnnouncement] = useState('');
+  const [shuffleFlash, setShuffleFlash] = useState(false);
+  const lastShuffleAppliedRef = useRef(0);
+  const flashTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (lastShuffleAppliedRef.current !== shuffleGeneration) {
+      lastShuffleAppliedRef.current = shuffleGeneration;
+      setOrderedImages(shuffleOrder(visibleImages));
+      return;
+    }
+    // Append-only sync: preserve the shuffled order of existing cards and
+    // append newly fetched images in fetch order without auto-reshuffling.
+    // If the backing source diverges (any ordered id missing from it, e.g. a
+    // new collection), reset to source order instead of appending.
+    setOrderedImages((prev) => {
+      const visibleIds = new Set(visibleImages.map((img) => img.id));
+      const hasDiverged = prev.some((img) => !visibleIds.has(img.id));
+      if (hasDiverged) {
+        return [...visibleImages];
+      }
+      const seen = new Set(prev.map((img) => img.id));
+      const delta = visibleImages.filter((img) => img && img.id && !seen.has(img.id));
+      if (delta.length === 0) {
+        return prev;
+      }
+      return [...prev, ...delta];
+    });
+  }, [visibleImages, shuffleGeneration]);
+
+  useEffect(() => {
+    return () => {
+      if (flashTimeoutRef.current !== null) {
+        window.clearTimeout(flashTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Determine number of columns based on density and responsive breakpoints
   const columnCount = useMemo(() => {
     return getColumnCount(gridDensity, screenWidth);
@@ -46,19 +91,19 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
 
   // Compute deterministic masonry columns (prefix-stable: existing cards never move)
   const columns = useMemo(() => {
-    if (layoutMode !== 'masonry' || visibleImages.length === 0) {
+    if (layoutMode !== 'masonry' || orderedImages.length === 0) {
       return [];
     }
-    const layout = buildMasonryLayout(visibleImages, columnCount);
+    const layout = buildMasonryLayout(orderedImages, columnCount);
     return layout.columns;
-  }, [visibleImages, columnCount, layoutMode]);
+  }, [orderedImages, columnCount, layoutMode]);
 
   // Map image ID to its overall index for above-the-fold fetch prioritization
   const imageIndicesMap = useMemo(() => {
     const map = new Map<string, number>();
-    visibleImages.forEach((img, idx) => map.set(img.id, idx));
+    orderedImages.forEach((img, idx) => map.set(img.id, idx));
     return map;
-  }, [visibleImages]);
+  }, [orderedImages]);
 
   // Sentinel ref for IntersectionObserver infinite scrolling
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -100,8 +145,32 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     setGridDensity(density);
   };
 
-  const handleGoToNext = () => goToNextImage(visibleImages);
-  const handleGoToPrev = () => goToPrevImage(visibleImages);
+  // Disabled state derives from the backing source: initial loading status and
+  // visible count threshold (fewer than two images means nothing to reorder).
+  const isShuffleDisabled = isInitialLoading || visibleImages.length < 2;
+
+  const handleShuffle = () => {
+    if (isShuffleDisabled) {
+      return;
+    }
+    setShuffleGeneration((prev) => prev + 1);
+    setShuffleAnnouncement(`Gallery order shuffled, showing ${visibleImages.length} images.`);
+    setShuffleFlash(true);
+    if (flashTimeoutRef.current !== null) {
+      window.clearTimeout(flashTimeoutRef.current);
+    }
+    flashTimeoutRef.current = window.setTimeout(() => {
+      setShuffleFlash(false);
+      flashTimeoutRef.current = null;
+    }, 350);
+  };
+
+  // Simple fade feedback on the gallery region after a shuffle (no remount, so
+  // card identity and loaded state are preserved). Shared by both layouts.
+  const galleryFadeClass = `transition-opacity duration-300 ${shuffleFlash ? 'opacity-40' : 'opacity-100'}`;
+
+  const handleGoToNext = () => goToNextImage(orderedImages);
+  const handleGoToPrev = () => goToPrevImage(orderedImages);
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900">
       <div className="max-w-7xl mx-auto relative">
@@ -111,7 +180,12 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
           gridDensity={gridDensity}
           onGridDensityChange={handleGridDensityChange}
           onSliderStart={handleSliderStart}
+          onShuffle={handleShuffle}
+          isShuffleDisabled={isShuffleDisabled}
         />
+        <div aria-live="polite" role="status" className="sr-only">
+          {shuffleAnnouncement}
+        </div>
         
         <div className="p-4 sm:p-6 pt-0">
           {/* Initial Loading Skeleton */}
@@ -126,7 +200,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
               {layoutMode === 'masonry' ? (
                 /* Stable Masonry Column Layout */
                 <div 
-                  className={`flex ${getGapClass(gridDensity)} items-start w-full`}
+                  className={`flex ${getGapClass(gridDensity)} items-start w-full ${galleryFadeClass}`}
                   role="region"
                   aria-label="Masonry image gallery"
                 >
@@ -150,11 +224,11 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
               ) : (
                 /* Standard Uniform Grid Layout */
                 <div 
-                  className={`grid ${getGridClass('grid', gridDensity)} ${getGapClass(gridDensity)} w-full`}
+                  className={`grid ${getGridClass('grid', gridDensity)} ${getGapClass(gridDensity)} w-full ${galleryFadeClass}`}
                   role="region"
                   aria-label="Grid image gallery"
                 >
-                  {visibleImages.map((image, index) => (
+                  {orderedImages.map((image, index) => (
                     <ImageCard
                       key={image.id}
                       image={image}
@@ -190,9 +264,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
                   </div>
                 )}
 
-                {!hasMore && visibleImages.length > 0 && !isLoadingMore && !loadError && (
+                {!hasMore && orderedImages.length > 0 && !isLoadingMore && !loadError && (
                   <p className="text-gray-400 text-sm py-4">
-                    You've reached the end of the collection ({visibleImages.length} images)
+                    You've reached the end of the collection ({orderedImages.length} images)
                   </p>
                 )}
               </div>
@@ -211,8 +285,8 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
           onClose={closeModal}
           onNext={handleGoToNext}
           onPrev={handleGoToPrev}
-          totalImages={visibleImages.length}
-          currentIndex={visibleImages.findIndex(img => img.id === selectedImage.id)}
+          totalImages={orderedImages.length}
+          currentIndex={orderedImages.findIndex(img => img.id === selectedImage.id)}
           enableTilt={false}
           prevImage={null}
           nextImage={null}
