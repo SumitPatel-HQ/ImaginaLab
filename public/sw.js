@@ -1,15 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// ImaginaLab PWA Service Worker — lean app-shell cache strategy.
-//
-// SOFT HANDS RULES:
-//   1. NEVER cache /api/ proxy requests (ImageKit credentials / pagination).
-//   2. NEVER cache external imagekit.io media (avoids storage exhaustion).
-//   3. Only cache the local static shell so the app opens on poor connections.
-
 const CACHE_NAME = 'imaginalab-shell-v1';
 
-/** Static assets that form the offline app shell. */
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -18,9 +10,6 @@ const STATIC_ASSETS = [
   '/icons/icon-512.png',
 ];
 
-// ---------------------------------------------------------------------------
-// Install — pre-cache the shell, activate immediately
-// ---------------------------------------------------------------------------
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
@@ -30,9 +19,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// ---------------------------------------------------------------------------
-// Activate — delete stale caches from previous versions
-// ---------------------------------------------------------------------------
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
@@ -48,30 +34,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ---------------------------------------------------------------------------
-// Fetch — route requests through the appropriate strategy
-// ---------------------------------------------------------------------------
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // --- BYPASS: ImageKit proxy API and external ImageKit media delivery ---
-  // These must always go to the network: they carry auth tokens, dynamic
-  // transformations, and large binary payloads unsuitable for local storage.
   if (
     url.pathname.startsWith('/api/') ||
     url.hostname.includes('imagekit.io') ||
     url.hostname.includes('ik.imagekit.io')
   ) {
-    return; // Hand off to the browser's default network fetch
+    return; 
   }
 
-  // --- BYPASS: Chrome extensions and non-http(s) schemes ---
   if (!url.protocol.startsWith('http')) {
     return;
   }
 
-  // --- BYPASS: Vite development server internals, scripts, modules, and HMR ---
   if (
     url.pathname.startsWith('/@') ||
     url.pathname.startsWith('/src/') ||
@@ -83,7 +61,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // --- HTML navigation: network-first, fall back to cached shell ---
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() => caches.match('/index.html'))
@@ -91,7 +68,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // --- Static shell assets: cache-first ---
   event.respondWith(
     caches
       .match(request)
