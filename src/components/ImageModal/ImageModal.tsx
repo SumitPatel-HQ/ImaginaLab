@@ -112,7 +112,7 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
       </button>
 
       <div
-        className="group relative max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[60%] max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl transform transition-transform duration-300 ease-in-out will-change-transform"
+        className="group relative max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[60%] max-h-[90vh] rounded-lg md:rounded-2xl overflow-hidden shadow-2xl transform transition-transform duration-300 ease-in-out will-change-transform"
         style={{
           transform: dragState.y ? `translateY(${dragState.y}px)` : 'none',
           opacity: dragState.y ? Math.max(1 - (dragState.y / 300), 0.3) : 1,
