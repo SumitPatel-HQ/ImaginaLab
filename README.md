@@ -5,6 +5,7 @@
   <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-4.3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
   <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=for-the-badge" alt="License: AGPL-3.0" />
 </p>
 
 ---
@@ -65,9 +66,16 @@ Fire up the local server:
 pnpm dev
 ```
 
+---
+
+## 📄 License
+
+This project is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0-or-later)](./LICENSE).
+
+The GNU AGPL-3.0 permits commercial use and redistribution subject to its conditions, including the requirement to make the complete corresponding source code of modified versions available to users interacting with the software remotely over a network.
 
 ---
 
 <p align="center">
-  Licensed under the <a href="./LICENSE">MIT License</a>.
+  Licensed under the <a href="./LICENSE">GNU Affero General Public License v3.0</a> (AGPL-3.0-or-later).
 </p>

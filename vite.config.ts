@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { defineConfig, loadEnv, type Plugin, type Connect } from 'vite';
 import type { ServerResponse } from 'http';
 import react from '@vitejs/plugin-react';
