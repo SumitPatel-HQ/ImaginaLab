@@ -94,3 +94,18 @@ export const pickRandomSearchName = <T extends SearchableImage>(
   const img = images[index];
   return { index, name: img.fileName ?? img.title };
 };
+
+/** Minimum upward travel (px) before an open mobile search panel collapses. */
+export const SCROLL_COLLAPSE_THRESHOLD_PX = 6;
+
+/**
+ * Decides whether an upward scroll should collapse the expanded mobile
+ * search panel. Never collapses while the user is interacting with the
+ * search (focused input or controls), and ignores downward/no-op scrolls.
+ */
+export const shouldCollapseSearchOnScroll = (
+  prevY: number,
+  currY: number,
+  isInteracting: boolean,
+  threshold: number = SCROLL_COLLAPSE_THRESHOLD_PX,
+): boolean => !isInteracting && prevY - currY > threshold;

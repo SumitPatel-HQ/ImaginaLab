@@ -7,6 +7,8 @@ import {
   normalizeSearchQuery,
   pickRandomSearchIndex,
   pickRandomSearchName,
+  SCROLL_COLLAPSE_THRESHOLD_PX,
+  shouldCollapseSearchOnScroll,
 } from "../src/components/ImageGrid/search.ts";
 
 type Img = { id: string; title: string; fileName?: string; filePath?: string };
@@ -118,5 +120,32 @@ describe("pickRandomSearchName", () => {
       index: 0,
       name: "Only",
     });
+  });
+});
+
+describe("shouldCollapseSearchOnScroll", () => {
+  it("collapses on an upward scroll beyond the threshold", () => {
+    assert.equal(shouldCollapseSearchOnScroll(300, 200, false), true);
+  });
+
+  it("ignores upward nudges within the threshold", () => {
+    assert.equal(
+      shouldCollapseSearchOnScroll(300, 300 - SCROLL_COLLAPSE_THRESHOLD_PX, false),
+      false,
+    );
+  });
+
+  it("ignores downward and stationary scrolls", () => {
+    assert.equal(shouldCollapseSearchOnScroll(200, 300, false), false);
+    assert.equal(shouldCollapseSearchOnScroll(200, 200, false), false);
+  });
+
+  it("never collapses while the user is interacting with the search", () => {
+    assert.equal(shouldCollapseSearchOnScroll(500, 100, true), false);
+  });
+
+  it("honors a custom threshold", () => {
+    assert.equal(shouldCollapseSearchOnScroll(100, 90, false, 20), false);
+    assert.equal(shouldCollapseSearchOnScroll(100, 70, false, 20), true);
   });
 });

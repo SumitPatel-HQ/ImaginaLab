@@ -20,7 +20,6 @@ import {
   pickRandomSearchName,
 } from './search';
 import { useScreenWidth } from '../../hooks/useUtils';
-import { usePWAInstall } from '../../hooks/usePWAInstall';
 
 interface ImageGridProps {
   images: Image[];
@@ -51,7 +50,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
 
   const { selectedImage, openModal, closeModal, goToNextImage, goToPrevImage } = useModal();
   const { handleSliderStart } = useSliderControl();
-  const { isInstallable, installApp } = usePWAInstall();
 
   // Shuffle state: generation counter triggers exactly one reorder per activation.
   // The backing `visibleImages` (infinite-scroll source of truth) is never reordered;
@@ -275,8 +273,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
           onSliderStart={handleSliderStart}
           onShuffle={handleShuffle}
           isShuffleDisabled={isShuffleDisabled}
-          isInstallable={isInstallable}
-          onInstall={installApp}
           query={query}
           onQueryChange={setQuery}
           onSubmitSearch={handleSubmitSearch}
