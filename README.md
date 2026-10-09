@@ -10,28 +10,27 @@
 ---
 
 <p align="center">
-  <b>A premium, high-performance web application tailored for a stunning personal gallery experience.</b><br>
-  Built with cutting-edge tools to transform your photo collection into a fluid, adaptive, and visually captivating interface.
+  A personal photo gallery web application with responsive masonry layouts, animated transitions, and image optimization.
 </p>
 
 ---
 
-## 💎 Features at a Glance
+## Features
 
-### 🎨 High-End Aesthetics
-*   **Fluid Motion**: Seamless animations powered by `GSAP`, `Framer Motion`, and `React Spring` for a true cinematic feel.
-*   **Modern Glassmorphism**: Layered frosted panels and depth cues across the gallery UI.
-*   **Masonry Layout**: A dynamic grid that intelligently organizes your photos based on their natural aspect ratio.
-*   **Dark Mode Native**: Designed from the ground up to look incredible in low-light environments.
+### Interface and animation
+* **Masonry grid.** Arranges photos by their natural aspect ratios with `react-masonry-css`.
+* **Animations.** Transitions and card interactions built with GSAP, Framer Motion, and React Spring.
+* **Glassmorphic styling.** Frosted translucent layers and depth cues styled with Tailwind CSS.
+* **Dark theme.** Low-light color palette configured as the default view.
 
-### ⚡ Performance Optimized
-*   **Adaptive Quality**: Automatically switches image resolution based on your connection quality (3G/4G/WiFi).
-*   **Smart Virtualization**: Efficiently renders large volumes of data using `react-window` without affecting browser performance.
-*   **Next-Gen Formats**: Instant loading via **ImageKit** with automatic WebP conversion and caching.
+### Performance
+* **Virtual scrolling.** Renders visible items with `react-window` to handle large albums smoothly.
+* **ImageKit delivery.** Serves images through ImageKit with WebP compression and CDN caching.
+* **Network-adaptive quality.** Adjusts image resolution based on the client connection speed.
 
-### 🛡️ Personal Privacy
-*   **Access Gate**: Simple and effective password protection for personal privacy.
-*   **Browsing Security**: Built-in "Security Blur" mode for browsing your private photos in public spaces.
+### Privacy
+* **Password protection.** Restricts gallery access behind an authentication gate.
+* **Security blur.** Quick toggle to blur all photos when viewing in public environments.
 
 ---
 
@@ -56,17 +55,9 @@ pnpm install
 ```
 
 ### 2. Environment Setup
-Create a `.env` file in the root directory:
-```env
-# Access Password
-VITE_PASSWORD_HERE=your_secure_password
 
-# ImageKit Credentials
-VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_id/
-VITE_IMAGEKIT_PATH_PREFIX=/YourFolderName/
-VITE_IMAGEKIT_PUBLIC_KEY=your_public_key
-IMAGEKIT_PRIVATE_KEY=your_private_key   # server-side only, never expose with VITE_ prefix
-```
+> Copy [`.env.example`](./.env.example) to `.env` and configure your credentials before running the app. 
+
 
 ### 3. Development
 Fire up the local server:
@@ -74,20 +65,6 @@ Fire up the local server:
 pnpm dev
 ```
 
----
-
-## 📁 Project Structure
-
-```text
-src/
-├── components/         # 🧩 Modular React components
-│   ├── Gallery/        # 🖼️ Main gallery logic
-│   ├── ImageGrid/      # 📱 Masonry grid implementation
-│   └── ImageModal/     # 🔍 Immersive image viewer
-├── hooks/              # 🪝 Logic & Security hooks
-├── services/           # 🌐 ImageKit & API integration
-└── App.tsx             # 🏗️ Core Application
-```
 
 ---
 

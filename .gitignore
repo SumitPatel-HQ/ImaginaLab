@@ -34,3 +34,6 @@ pnpm-debug.log*
 .cache/
 .json
 
+# Local docs (untracked)
+docs/
+
