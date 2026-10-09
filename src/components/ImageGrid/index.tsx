@@ -211,7 +211,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     else window.scrollTo({ top: 0 });
   };
 
-  const commitSearch = useCallback((raw: string, opts?: { fromRandom?: boolean }) => {
+  const commitSearch = useCallback((raw: string, opts?: { revealInModal?: boolean }) => {
     const norm = normalizeSearchQuery(raw);
     setSubmittedQuery(norm);
     if (!norm) {
@@ -225,16 +225,16 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     } else {
       setSearchAnnouncement(formatSearchCount(matches.length, raw, allImages.length, hasMore));
     }
-    // Reveal exact hits in the modal: always for Random-originated submits,
-    // otherwise only when a single exact filename/title hit exists.
-    if (exact && (opts?.fromRandom || (matches.length === 1 && exact))) {
+    // Reveal a lone exact filename/title hit in the modal — only for
+    // explicit submits (Enter), never for Random picks.
+    if (opts?.revealInModal && matches.length === 1 && exact) {
       openModal(exact);
     }
     scrollGridToTop();
   }, [allImages, hasMore, openModal]);
 
   const handleSubmitSearch = useCallback((raw: string) => {
-    commitSearch(raw);
+    commitSearch(raw, { revealInModal: true });
   }, [commitSearch]);
 
   const handleRandomName = useCallback(() => {
@@ -242,11 +242,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     const picked = pickRandomSearchName(allImages, lastRandomIdx);
     if (!picked) return;
     setLastRandomIdx(picked.index);
+    // Fill the input AND filter the grid so every click reveals a new
+    // image — but never pop the modal; that is reserved for Enter submits.
     setQuery(picked.name);
-    commitSearch(picked.name, { fromRandom: true });
+    commitSearch(picked.name);
     const matches = filterImagesByName(allImages, picked.name);
     setSearchAnnouncement(
-      `Random image name: ${picked.name}. ${formatSearchCount(matches.length, picked.name, allImages.length, hasMore)}`
+      `Random pick: ${picked.name}. ${formatSearchCount(matches.length, picked.name, allImages.length, hasMore)} Press Enter to open it.`
     );
   }, [allImages, commitSearch, hasMore, isInitialLoading, lastRandomIdx]);
 
@@ -282,6 +284,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
           onClearSearch={handleClearSearch}
           isSearchDisabled={isSearchDisabled}
           isRandomDisabled={isRandomDisabled}
+          isModalOpen={selectedImage !== null}
         />
         <div aria-live="polite" role="status" className="sr-only">
           {shuffleAnnouncement} {searchAnnouncement}

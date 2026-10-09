@@ -49,8 +49,8 @@ const HoverAnimation: React.FC<HoverAnimationProps> = memo(({
           <div className="hover-overlay absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
           
           {/* CSS-driven title animation */}
-          <div className="hover-title-container absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
-            <h3 className="hover-title-text text-white text-sm font-medium drop-shadow-lg truncate">
+          <div className="hover-title-container absolute bottom-0 left-0 right-0 px-2.5 py-1.5 pointer-events-none">
+            <h3 className="hover-title-text text-white text-xs font-medium drop-shadow-md truncate">
               {title}
             </h3>
           </div>
