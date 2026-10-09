@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Minus, Plus, Shuffle } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Shuffle, MonitorDown } from 'lucide-react';
 
 interface HeaderProps {
   onClose: () => void;
@@ -9,6 +9,10 @@ interface HeaderProps {
   onSliderStart: () => void;
   onShuffle: () => void;
   isShuffleDisabled?: boolean;
+  /** Called when the user clicks the in-page install button. */
+  onInstall?: () => void;
+  /** True when Chrome has determined the app is installable and not yet installed. */
+  isInstallable?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -17,7 +21,9 @@ const Header: React.FC<HeaderProps> = ({
   onGridDensityChange,
   onSliderStart,
   onShuffle,
-  isShuffleDisabled = false
+  isShuffleDisabled = false,
+  onInstall,
+  isInstallable = false,
 }) => {
   const sliderTrackRef = useRef<HTMLDivElement>(null);
   const initialThumbPosition = ((gridDensity - 1) / 4) * 100;
@@ -92,6 +98,19 @@ const Header: React.FC<HeaderProps> = ({
           <Shuffle className="w-5 h-5" aria-hidden="true" />
           <span className="hidden sm:block">Shuffle</span>
         </button>
+
+        {/* PWA Install button — only rendered when Chrome fires beforeinstallprompt */}
+        {isInstallable && onInstall && (
+          <button
+            onClick={onInstall}
+            aria-label="Install ImaginaLab application"
+            title="Install App"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/35 border border-indigo-400/30 hover:border-indigo-400/60 rounded-full transition-all duration-200 text-indigo-300 hover:text-indigo-100 cursor-pointer focus-visible:outline-2 focus-visible:outline-indigo-400 focus-visible:outline-offset-2"
+          >
+            <MonitorDown className="w-5 h-5" aria-hidden="true" />
+            <span className="hidden sm:block">Install</span>
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
