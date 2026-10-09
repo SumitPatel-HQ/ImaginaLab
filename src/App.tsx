@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useEffect, useState } from 'react';
 import Gallery from './components/Gallery';
 import useSecurityProtection from './hooks/useSecurity';

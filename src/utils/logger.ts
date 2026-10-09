@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 const isDev = import.meta.env.DEV;
 
 type LogLevel = 'log' | 'warn' | 'error' | 'info';

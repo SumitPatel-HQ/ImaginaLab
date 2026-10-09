@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Shared TypeScript types for ImageKit services
 export interface ImageKitImage {
   id: string;

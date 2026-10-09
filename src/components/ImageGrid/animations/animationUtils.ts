@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Animation utilities for optimized hover effects
 export const ANIMATION_CONFIG = {
   // 3D Transform settings

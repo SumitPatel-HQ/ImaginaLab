@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // change the password in App.tsx
 import React, { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';

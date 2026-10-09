@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Card utilities for positioning and styling
 export const RESPONSIVE_SIZES = 'w-[80vw] sm:w-[70vw] md:w-[50vw] lg:w-[40vw] max-w-lg';
 

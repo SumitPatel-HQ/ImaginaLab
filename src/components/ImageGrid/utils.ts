@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Grid layout utility functions
 export { getColumnCount } from './masonry';
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useCallback, useEffect, useMemo } from 'react';
 import { type ImageKitImage, IMAGEKIT_URL_ENDPOINT } from '../../services/ImageKit';
 import { GALLERY_CONFIG } from './config';

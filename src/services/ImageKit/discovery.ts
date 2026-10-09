@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Image discovery algorithms
 import logger from '../../utils/logger';
 import type { ImageRange } from './types';

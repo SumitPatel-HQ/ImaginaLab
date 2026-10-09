@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useState, useRef, useMemo } from 'react';
 import { useGallery } from '../../hooks/gallery';
 import { useTouchHandler } from '../../hooks/useTouch';

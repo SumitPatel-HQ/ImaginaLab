@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import type { ImageKitImage as Image } from '../../services/ImageKit';
 
 export interface MasonryLayout {

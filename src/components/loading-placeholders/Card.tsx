@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Image as IKImage } from '@imagekit/react';
 import { type ImageKitImage as ImageType, IMAGEKIT_URL_ENDPOINT } from '../../services/ImageKit';

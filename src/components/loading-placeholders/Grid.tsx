@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React from 'react';
 import { ImageCardSkeleton } from '../ui/Skeleton';
 import { getGridClass, getGapClass, getColumnCount } from '../ImageGrid/utils';

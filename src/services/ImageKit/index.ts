@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Main ImageKit service - Clean public API with flexible file support
 import logger from '../../utils/logger';
 import type { ImageKitImage } from './types';

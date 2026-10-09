@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // ImageKit API service for fetching files using List Files API
 import logger from '../../utils/logger';
 

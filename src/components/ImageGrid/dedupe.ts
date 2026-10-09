@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** Minimal structural shape needed for content-aware dedupe. */
 export interface DedupableImage {
   readonly id: string;

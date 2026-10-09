@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { useState } from 'react';
 import { Skeleton } from '../ui/Skeleton';
 import type { ImageKitImage as Image } from '../../services/ImageKit';

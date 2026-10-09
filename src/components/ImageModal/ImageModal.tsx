@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import type { ImageKitImage as Image } from '../../services/ImageKit';

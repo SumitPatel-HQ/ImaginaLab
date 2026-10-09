@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Image loading and metadata management
 import logger from '../../utils/logger';
 import type { ImageKitImage, ImageMetadata, BatchResult } from './types';

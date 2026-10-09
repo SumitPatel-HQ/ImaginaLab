@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import React, { useRef } from 'react';
 import type { ImageKitImage as Image } from '../../services/ImageKit';
 import { getImageKitUrl, getPlaceholderUrl, getResponsiveSrcSet } from './constants';

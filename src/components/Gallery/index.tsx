@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Optimized ImageKit-powered image gallery
 import { useSyncExternalStore, useCallback } from 'react';
 import ImageGrid from '../ImageGrid';

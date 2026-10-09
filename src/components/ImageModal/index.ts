@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 export { default } from './ImageModal';
 export type { ImageLoadingState } from '../../hooks/useImageState';
 export type { SwipeState, DragState } from '../../hooks/useGestures';

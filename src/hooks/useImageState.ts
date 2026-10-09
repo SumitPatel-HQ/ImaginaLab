@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useState, useCallback, useEffect } from 'react';
 import { preloadImageKit as preloadImage } from '../services/ImageKit';
 import type { ImageKitImage as Image } from '../services/ImageKit';

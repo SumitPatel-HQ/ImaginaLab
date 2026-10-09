@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Returns a new array with the input items in a uniformly shuffled order
  * (Fisher-Yates). Never mutates the input.

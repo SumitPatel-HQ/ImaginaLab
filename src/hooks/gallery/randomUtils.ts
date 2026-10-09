@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import type { ImageKitImage } from '../../services/ImageKit';
 
 // Extract current image identifier from image src

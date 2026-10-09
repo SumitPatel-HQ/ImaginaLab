@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 import { getOptimizedImageUrl, createImageTransformations } from '../../../services/ImageKit/config';
 import { createIntersectionObserver } from './animationUtils';

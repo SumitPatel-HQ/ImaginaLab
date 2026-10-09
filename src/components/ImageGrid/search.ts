@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Pure client-side search utilities for the gallery grid.
  * Single test seam for the search + random-name feature.

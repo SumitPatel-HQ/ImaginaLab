@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // ImageKit cache management
 import logger from '../../utils/logger';
 import { CONFIG, IMAGEKIT_URL_ENDPOINT, getImageKitConfigSignature } from './config';

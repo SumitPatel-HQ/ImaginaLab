@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // ImaginaLab PWA Service Worker — lean app-shell cache strategy.
 //
 // SOFT HANDS RULES:

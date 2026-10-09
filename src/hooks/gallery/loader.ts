@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useState, useCallback, useRef } from 'react';
 import logger from '../../utils/logger';
 import { 

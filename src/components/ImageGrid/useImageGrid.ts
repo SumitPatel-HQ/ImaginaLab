@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getImagesPageFromAPI, type ImageKitImage as Image } from '../../services/ImageKit';
 import { mergeUniqueImages } from './dedupe';

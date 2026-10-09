@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Loading placeholder components for improved perceived performance
 // These components show shimmer/skeleton loading states while content loads
 export { default as GridSkeleton } from './Grid';
