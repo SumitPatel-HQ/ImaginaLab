@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getImagesPageFromAPI, type ImageKitImage as Image } from '../../services/ImageKit';
+import { mergeUniqueImages } from './dedupe';
 import logger from '../../utils/logger';
 
 interface UseImageGridReturn {
@@ -15,21 +16,6 @@ interface UseImageGridReturn {
 
 const INITIAL_LOAD = 30;
 const IMAGES_PER_LOAD = 15;
-
-/**
- * Deduplicates and appends incoming images to existing images based on image.id.
- */
-const mergeUniqueImages = (existing: Image[], incoming: Image[]): Image[] => {
-  const seenIds = new Set(existing.map((img) => img.id));
-  const newUnique: Image[] = [];
-  for (const img of incoming) {
-    if (img && img.id && !seenIds.has(img.id)) {
-      seenIds.add(img.id);
-      newUnique.push(img);
-    }
-  }
-  return [...existing, ...newUnique];
-};
 
 export const useImageGrid = (initialImages: Image[]): UseImageGridReturn => {
   const hasInitialImages = Boolean(initialImages && initialImages.length > 0);

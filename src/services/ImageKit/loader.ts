@@ -4,6 +4,7 @@ import type { ImageKitImage, ImageMetadata, BatchResult } from './types';
 import { CONFIG, IMAGEKIT_URL_ENDPOINT, IMAGEKIT_PATH_PREFIX, getImageKitPath, testImageExists, createImageTransformations, getOptimizedImageUrl, getDeviceType, getOptimalQuality } from './config';
 import { isImageLoaded, preloadImageKit } from './cache';
 import { getAllFilesFromFolder, listImageKitFiles, getFileExtension, getFileNameWithoutExtension } from './api';
+import { isCurrentFileEntry } from './fileFilter';
 
 // Enhanced image metadata extraction using optimized thumbnail
 // Now supports any file extension and preserves original filenames
@@ -65,6 +66,7 @@ export const discoverAllFilesFromAPI = async (): Promise<ImageKitImage[]> => {
     const images: ImageKitImage[] = [];
     
     for (const file of files) {
+      if (!isCurrentFileEntry(file)) continue;
       try {
         // Use file dimensions from API if available, otherwise default
         const ratio = (file.width && file.height) 
@@ -118,7 +120,9 @@ export const getImagesPageFromAPI = async (
       sort: 'ASC_NAME',
     });
 
-    const images: ImageKitImage[] = response.files.map((file) => {
+    const images: ImageKitImage[] = response.files
+      .filter(isCurrentFileEntry)
+      .map((file) => {
       const ratio = (file.width && file.height)
         ? (file.width / file.height >= 1.5 ? '3:2' : '2:3')
         : '2:3';
