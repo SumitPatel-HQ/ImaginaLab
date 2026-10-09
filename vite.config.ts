@@ -1,10 +1,11 @@
-import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin, type Connect } from 'vite';
+import type { ServerResponse } from 'http';
 import react from '@vitejs/plugin-react';
 
 function imagekitProxyPlugin(): Plugin {
   let privateKey = '';
 
-  const handleApiRequest = async (req: any, res: any) => {
+  const handleApiRequest = async (req: Connect.IncomingMessage, res: ServerResponse) => {
     if (req.method !== 'GET') {
       res.statusCode = 405;
       res.setHeader('Content-Type', 'application/json');
@@ -15,12 +16,12 @@ function imagekitProxyPlugin(): Plugin {
     if (!privateKey) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'VITE_IMAGEKIT_PRIVATE_KEY is not defined in environment variables' }));
+      res.end(JSON.stringify({ error: 'IMAGEKIT_PRIVATE_KEY is not defined in environment variables' }));
       return;
     }
 
     try {
-      const urlObj = new URL(req.url, 'http://localhost');
+      const urlObj = new URL(req.url || '', 'http://localhost');
       const queryString = urlObj.search;
       const targetUrl = `https://api.imagekit.io/v1/files${queryString}`;
       const authHeader = `Basic ${Buffer.from(`${privateKey}:`).toString('base64')}`;
@@ -36,10 +37,11 @@ function imagekitProxyPlugin(): Plugin {
       res.statusCode = response.status;
       res.setHeader('Content-Type', 'application/json');
       res.end(body);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch from ImageKit';
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: err?.message || 'Failed to fetch from ImageKit' }));
+      res.end(JSON.stringify({ error: errorMessage }));
     }
   };
 
@@ -47,7 +49,7 @@ function imagekitProxyPlugin(): Plugin {
     name: 'imagekit-proxy',
     configResolved(config) {
       const env = loadEnv(config.mode, process.cwd(), '');
-      privateKey = env.VITE_IMAGEKIT_PRIVATE_KEY || env.IMAGEKIT_PRIVATE_KEY || '';
+      privateKey = env.IMAGEKIT_PRIVATE_KEY || env.VITE_IMAGEKIT_PRIVATE_KEY || '';
     },
     configureServer(server) {
       server.middlewares.use('/api/files', handleApiRequest);

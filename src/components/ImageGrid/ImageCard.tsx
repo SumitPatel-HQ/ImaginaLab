@@ -7,9 +7,18 @@ interface ImageCardProps {
   image: Image;
   layoutMode: 'grid' | 'masonry';
   onImageClick: (image: Image) => void;
+  index?: number;
 }
 
-const ImageCard: React.FC<ImageCardProps> = ({ image, layoutMode, onImageClick }) => {
+const ImageCard: React.FC<ImageCardProps> = ({ 
+  image, 
+  layoutMode, 
+  onImageClick,
+  index = 999 
+}) => {
+  // Only the first 6 cards are given high fetch priority and eager loading
+  const isHighPriority = index < 6;
+
   return (
     <HoverAnimation
       imageUrl={image.src}
@@ -19,10 +28,10 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, layoutMode, onImageClick }
     >
       <ImageSkeleton 
         image={image}
-        aspectRatio={image.ratio as '2:3' | '3:2'}
-        quality="full"
-        className={layoutMode === 'masonry' ? 'w-full' : ''}
-        fetchPriority="high"
+        quality="thumbnail"
+        className="w-full"
+        fetchPriority={isHighPriority ? 'high' : 'auto'}
+        loading={isHighPriority ? 'eager' : 'lazy'}
       />
     </HoverAnimation>
   );

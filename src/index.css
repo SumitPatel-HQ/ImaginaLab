@@ -4,9 +4,6 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    overscroll-behavior: none;
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
   }
 
   body {
@@ -14,14 +11,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    overscroll-behavior: none;
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
   }
 
   /* Universal element styles */
   * {
-    overscroll-behavior: none;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }

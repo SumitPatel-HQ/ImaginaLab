@@ -9,7 +9,8 @@ import {
   getImageById,
   getImageWithRatio,
   getPreloadedImage,
-  discoverAllFilesFromAPI
+  discoverAllFilesFromAPI,
+  getImagesPageFromAPI
 } from './loader';
 
 // Re-export cache functions
@@ -86,5 +87,6 @@ export {
   getImageWithRatio, 
   getPreloadedImage,
   getEstimatedImageCount,
-  getTotalImageCount 
+  getTotalImageCount,
+  getImagesPageFromAPI
 };

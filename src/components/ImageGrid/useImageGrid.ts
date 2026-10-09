@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getAllImagesFromAPI, type ImageKitImage as Image } from '../../services/ImageKit';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getImagesPageFromAPI, type ImageKitImage as Image } from '../../services/ImageKit';
 import logger from '../../utils/logger';
 
 interface UseImageGridReturn {
@@ -7,69 +7,171 @@ interface UseImageGridReturn {
   visibleImages: Image[];
   hasMore: boolean;
   isInitialLoading: boolean;
-  fetchMoreData: () => void;
+  isLoadingMore: boolean;
+  loadError: string | null;
+  fetchMoreData: () => Promise<void>;
+  retryFetchMore: () => Promise<void>;
 }
 
+const INITIAL_LOAD = 30;
+const IMAGES_PER_LOAD = 15;
+
+/**
+ * Deduplicates and appends incoming images to existing images based on image.id.
+ */
+const mergeUniqueImages = (existing: Image[], incoming: Image[]): Image[] => {
+  const seenIds = new Set(existing.map((img) => img.id));
+  const newUnique: Image[] = [];
+  for (const img of incoming) {
+    if (img && img.id && !seenIds.has(img.id)) {
+      seenIds.add(img.id);
+      newUnique.push(img);
+    }
+  }
+  return [...existing, ...newUnique];
+};
+
 export const useImageGrid = (initialImages: Image[]): UseImageGridReturn => {
-  const [allImages, setAllImages] = useState<Image[]>([]);
-  const [visibleImages, setVisibleImages] = useState<Image[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const hasInitialImages = Boolean(initialImages && initialImages.length > 0);
 
-  const INITIAL_LOAD = 30;
-  const IMAGES_PER_LOAD = 15;
+  const [allImages, setAllImages] = useState<Image[]>(() => initialImages || []);
+  const [visibleImages, setVisibleImages] = useState<Image[]>(() => 
+    hasInitialImages ? initialImages.slice(0, INITIAL_LOAD) : []
+  );
+  const [hasMore, setHasMore] = useState<boolean>(() => 
+    hasInitialImages ? initialImages.length > INITIAL_LOAD : true
+  );
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(() => !hasInitialImages);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Load all images once at startup
+  // References to prevent stale closures and overlapping calls
+  const isLoadingMoreRef = useRef(false);
+  const allImagesRef = useRef(allImages);
+  const visibleImagesRef = useRef(visibleImages);
+  const apiHasMoreRef = useRef(true);
+
+  // Keep refs synchronized with state in an effect
   useEffect(() => {
-    const loadAllImages = async () => {
-      try {
-        setIsInitialLoading(true);
-        logger.log('🔍 Discovering all available images from API...');
-        const allDiscoveredImages = await getAllImagesFromAPI();
-        logger.log(`✅ Found ${allDiscoveredImages.length} total images from API`);
-        
-        setAllImages(allDiscoveredImages);
-        setVisibleImages(allDiscoveredImages.slice(0, INITIAL_LOAD));
-        setHasMore(allDiscoveredImages.length > INITIAL_LOAD);
-      } catch (error) {
-        logger.error('Error loading images:', error);
-        setAllImages(initialImages);
-        setVisibleImages(initialImages.slice(0, INITIAL_LOAD));
-        setHasMore(initialImages.length > INITIAL_LOAD);
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
+    allImagesRef.current = allImages;
+    visibleImagesRef.current = visibleImages;
+  }, [allImages, visibleImages]);
 
-    loadAllImages();
-  }, [initialImages]);
-
-  // Load more images for infinite scroll
-  const fetchMoreData = useCallback(() => {
-    if (visibleImages.length >= allImages.length) {
-      setHasMore(false);
+  // Initial load effect (only triggers when initialImages is empty)
+  useEffect(() => {
+    if (initialImages && initialImages.length > 0) {
       return;
     }
 
-    logger.log(`📦 Loading more images... (${visibleImages.length}/${allImages.length})`);
-    
-    setTimeout(() => {
-      const nextImages = allImages.slice(
-        visibleImages.length, 
-        visibleImages.length + IMAGES_PER_LOAD
+    let isCancelled = false;
+
+    const loadInitialBatch = async () => {
+      try {
+        setIsInitialLoading(true);
+        setLoadError(null);
+        logger.log('🔍 Loading initial batch from ImageKit API...');
+
+        const page = await getImagesPageFromAPI(0, INITIAL_LOAD);
+        if (isCancelled) return;
+
+        logger.log(`✅ Loaded initial batch of ${page.images.length} images`);
+        setAllImages(page.images);
+        setVisibleImages(page.images);
+        apiHasMoreRef.current = page.hasMore;
+        setHasMore(page.hasMore);
+      } catch (error) {
+        if (isCancelled) return;
+        logger.error('❌ Failed to load initial images:', error);
+        setLoadError('Failed to load images. Please check your connection and retry.');
+        setHasMore(false);
+      } finally {
+        if (!isCancelled) {
+          setIsInitialLoading(false);
+        }
+      }
+    };
+
+    loadInitialBatch();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [initialImages]);
+
+  // Load more images (from in-memory allImages or next API page)
+  const fetchMoreData = useCallback(async () => {
+    // Prevent overlapping pagination requests
+    if (isLoadingMoreRef.current || isInitialLoading) {
+      return;
+    }
+
+    const currentVisible = visibleImagesRef.current;
+    const currentAll = allImagesRef.current;
+
+    // 1. If we have remaining images in memory, slice them directly without delay
+    if (currentVisible.length < currentAll.length) {
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
+      setLoadError(null);
+
+      const nextSlice = currentAll.slice(
+        currentVisible.length,
+        currentVisible.length + IMAGES_PER_LOAD
       );
-      
-      setVisibleImages(prev => [...prev, ...nextImages]);
-      
-      setHasMore(visibleImages.length + nextImages.length < allImages.length);
-    }, 300);
-  }, [visibleImages.length, allImages]);
+
+      setVisibleImages(prev => mergeUniqueImages(prev, nextSlice));
+      const hasMoreInMemory = currentVisible.length + nextSlice.length < currentAll.length;
+      setHasMore(hasMoreInMemory || apiHasMoreRef.current);
+
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+      return;
+    }
+
+    // 2. If memory is exhausted but API has more, fetch the next page from API
+    if (apiHasMoreRef.current) {
+      try {
+        isLoadingMoreRef.current = true;
+        setIsLoadingMore(true);
+        setLoadError(null);
+
+        const skip = currentAll.length;
+        logger.log(`📦 Fetching next page from API (skip: ${skip}, limit: ${IMAGES_PER_LOAD})...`);
+
+        const page = await getImagesPageFromAPI(skip, IMAGES_PER_LOAD);
+        apiHasMoreRef.current = page.hasMore;
+
+        setAllImages(prev => mergeUniqueImages(prev, page.images));
+        setVisibleImages(prev => mergeUniqueImages(prev, page.images));
+        setHasMore(page.hasMore);
+      } catch (error) {
+        logger.error('❌ Failed to load more images:', error);
+        setLoadError('Could not load additional images. Click to retry.');
+      } finally {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+      }
+      return;
+    }
+
+    // 3. No more images anywhere
+    setHasMore(false);
+  }, [isInitialLoading]);
+
+  // Retry action for failed requests
+  const retryFetchMore = useCallback(async () => {
+    setLoadError(null);
+    await fetchMoreData();
+  }, [fetchMoreData]);
 
   return {
     allImages,
     visibleImages,
     hasMore,
     isInitialLoading,
-    fetchMoreData
+    isLoadingMore,
+    loadError,
+    fetchMoreData,
+    retryFetchMore
   };
 };

@@ -1,21 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import Gallery from './components/Gallery';
-import PasswordProtection from './components/PasswordProtection';
 import useSecurityProtection from './hooks/useSecurity';
-
-const PASSWORD = import.meta.env.VITE_PASSWORD_HERE;
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  const { isBlurred, blurClassName, unblur } = useSecurityProtection({
+  const { isBlurred, blurClassName } = useSecurityProtection({
     onSuspiciousActivity: () => setIsAuthenticated(false),
   });
-  
-  const handleAuthentication = useCallback(() => {
-    setIsAuthenticated(true);
-    unblur();
-  }, [unblur]);
   
   useEffect(() => {
     const handleVisibilityChange = () => {

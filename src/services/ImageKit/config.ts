@@ -4,7 +4,6 @@ import logger from '../../utils/logger';
 export const IMAGEKIT_URL_ENDPOINT = import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || '';
 export const IMAGEKIT_PATH_PREFIX = import.meta.env.VITE_IMAGEKIT_PATH_PREFIX || '/AP/';
 const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || '';
-const IMAGEKIT_PRIVATE_KEY = import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY || '';
 
 if (!IMAGEKIT_URL_ENDPOINT) {
   logger.error('⚠️  VITE_IMAGEKIT_URL_ENDPOINT is not defined in environment variables');
@@ -167,7 +166,6 @@ export const getImageKitConfigSignature = (): string => {
     IMAGEKIT_URL_ENDPOINT,
     IMAGEKIT_PATH_PREFIX,
     IMAGEKIT_PUBLIC_KEY,
-    IMAGEKIT_PRIVATE_KEY,
   ].join('|'));
 };
 

@@ -1,4 +1,6 @@
-export default async function handler(req: any, res: any) {
+import type { IncomingMessage, ServerResponse } from 'http';
+
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
   if (req.method !== 'GET') {
     res.statusCode = 405;
     res.setHeader('Content-Type', 'application/json');
@@ -6,7 +8,7 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const privateKey = process.env.VITE_IMAGEKIT_PRIVATE_KEY || process.env.IMAGEKIT_PRIVATE_KEY || '';
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || process.env.VITE_IMAGEKIT_PRIVATE_KEY || '';
   if (!privateKey) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
@@ -31,9 +33,10 @@ export default async function handler(req: any, res: any) {
     res.statusCode = response.status;
     res.setHeader('Content-Type', 'application/json');
     res.end(body);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to fetch from ImageKit';
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: err?.message || 'Failed to fetch from ImageKit' }));
+    res.end(JSON.stringify({ error: errorMessage }));
   }
 }

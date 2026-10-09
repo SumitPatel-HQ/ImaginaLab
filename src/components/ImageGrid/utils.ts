@@ -1,4 +1,6 @@
 // Grid layout utility functions
+export { getColumnCount } from './masonry';
+
 export const getGridClass = (layoutMode: 'grid' | 'masonry', gridDensity: number): string => {
   if (layoutMode === 'masonry') {
     switch (gridDensity) {

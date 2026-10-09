@@ -85,18 +85,20 @@ function Skeleton({
 
 // Image Card Skeleton component for the ImageGrid
 function ImageCardSkeleton({ aspectRatio = "2:3" }: { aspectRatio?: "2:3" | "3:2" }) {
+  const ratioStyle = aspectRatio === '2:3' ? '2 / 3' : '3 / 2';
   return (
-    <div className="group relative cursor-pointer">
-      <div className="relative overflow-hidden rounded-lg shadow-md">
-        <div className={`${aspectRatio === '2:3' ? 'pb-[150%]' : 'pb-[66.67%]'} bg-gray-800 relative`}>
-          <Skeleton 
-            className="absolute inset-0 w-full h-full" 
-            shimmer 
-            variant="square"
-          />
-        </div>
+    <div className="group relative w-full">
+      <div 
+        className="relative w-full overflow-hidden rounded-lg shadow-md bg-gray-800/80"
+        style={{ aspectRatio: ratioStyle }}
+      >
+        <Skeleton 
+          className="absolute inset-0 w-full h-full rounded-lg" 
+          shimmer 
+          variant="square"
+        />
         {/* Title skeleton at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-3">
+        <div className="absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
           <Skeleton className="h-4 w-3/4" shimmer />
         </div>
       </div>

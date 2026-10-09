@@ -3,7 +3,7 @@ import logger from '../../utils/logger';
 import type { ImageKitImage, ImageMetadata, BatchResult } from './types';
 import { CONFIG, IMAGEKIT_URL_ENDPOINT, IMAGEKIT_PATH_PREFIX, getImageKitPath, testImageExists, createImageTransformations, getOptimizedImageUrl, getDeviceType, getOptimalQuality } from './config';
 import { isImageLoaded, preloadImageKit } from './cache';
-import { getAllFilesFromFolder, getFileExtension, getFileNameWithoutExtension } from './api';
+import { getAllFilesFromFolder, listImageKitFiles, getFileExtension, getFileNameWithoutExtension } from './api';
 
 // Enhanced image metadata extraction using optimized thumbnail
 // Now supports any file extension and preserves original filenames
@@ -98,6 +98,54 @@ export const discoverAllFilesFromAPI = async (): Promise<ImageKitImage[]> => {
     logger.error('❌ Error discovering files from API:', error);
     logger.log('⚠️ Falling back to legacy numeric discovery...');
     return discoverAvailableImages(100);
+  }
+};
+
+/**
+ * Fetch a single page of images from the ImageKit API.
+ * Returns only the requested batch so rendering can start immediately.
+ */
+export const getImagesPageFromAPI = async (
+  skip: number = 0,
+  limit: number = 30
+): Promise<{ images: ImageKitImage[]; hasMore: boolean }> => {
+  try {
+    const response = await listImageKitFiles({
+      path: IMAGEKIT_PATH_PREFIX,
+      fileType: 'all',
+      limit,
+      skip,
+      sort: 'ASC_NAME',
+    });
+
+    const images: ImageKitImage[] = response.files.map((file) => {
+      const ratio = (file.width && file.height)
+        ? (file.width / file.height >= 1.5 ? '3:2' : '2:3')
+        : '2:3';
+
+      return {
+        id: file.fileId,
+        title: getFileNameWithoutExtension(file.name),
+        src: file.url,
+        ratio,
+        category: 'Imaginalab AI',
+        loaded: false,
+        fileId: file.fileId,
+        fileName: file.name,
+        fileType: getFileExtension(file.name),
+        filePath: file.filePath,
+        width: file.width,
+        height: file.height,
+      };
+    });
+
+    return {
+      images,
+      hasMore: response.hasMore,
+    };
+  } catch (error) {
+    logger.error('❌ Error fetching image page from API:', error);
+    throw error;
   }
 };
 

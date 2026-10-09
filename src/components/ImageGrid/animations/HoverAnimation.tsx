@@ -16,12 +16,10 @@ const HoverAnimation: React.FC<HoverAnimationProps> = memo(({
   imageUrl,
   title,
   className = '',
-  layoutMode,
   onImageClick
 }) => {
   const {
     cardRef,
-    handleMouseMove,
     handleMouseEnter,
     handleMouseLeave,
     config,
@@ -30,14 +28,13 @@ const HoverAnimation: React.FC<HoverAnimationProps> = memo(({
 
   return (
     <div
-      className={`${layoutMode === 'masonry' ? 'mb-4 break-inside-avoid' : ''} group relative cursor-pointer hover-animation-container ${className}`}
+      className={`group relative cursor-pointer hover-animation-container ${className}`}
       onClick={onImageClick}
       style={{ zIndex: 1, position: 'relative' }}
     >
       <div
         ref={cardRef}
-        className="hover-card relative overflow-hidden rounded-lg"
-        onMouseMove={supportsHover ? handleMouseMove : undefined}
+        className="hover-card relative overflow-hidden rounded-lg w-full h-full"
         onMouseEnter={supportsHover ? handleMouseEnter : undefined}
         onMouseLeave={supportsHover ? handleMouseLeave : undefined}
         style={{
@@ -49,11 +46,11 @@ const HoverAnimation: React.FC<HoverAnimationProps> = memo(({
           {children}
           
           {/* CSS-driven gradient overlay */}
-          <div className="hover-overlay absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
+          <div className="hover-overlay absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
           
           {/* CSS-driven title animation */}
-          <div className="hover-title-container absolute bottom-0 left-0 right-0 p-3">
-            <h3 className="hover-title-text text-white text-sm font-medium drop-shadow-lg">
+          <div className="hover-title-container absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
+            <h3 className="hover-title-text text-white text-sm font-medium drop-shadow-lg truncate">
               {title}
             </h3>
           </div>

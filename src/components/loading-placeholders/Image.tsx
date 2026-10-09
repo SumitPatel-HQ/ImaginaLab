@@ -7,7 +7,7 @@ interface ImageSkeletonProps {
   image: Image;
   className?: string;
   onImageLoad?: () => void;
-  aspectRatio?: '2:3' | '3:2';
+  aspectRatio?: string; // Quality aspect ratio (e.g., '2:3', '3:2', '1:1', or CSS ratio)
   quality?: 'thumbnail' | 'preview' | 'full' | 'ultra'; // Quality level
   fetchPriority?: 'high' | 'low' | 'auto'; // Browser fetch priority
   loading?: 'eager' | 'lazy'; // Loading behavior
@@ -17,7 +17,7 @@ const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
   image,
   className = '',
   onImageLoad,
-  aspectRatio = '2:3',
+  aspectRatio,
   quality = 'thumbnail',
   fetchPriority = 'auto',
   loading = 'lazy'
@@ -26,8 +26,23 @@ const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(true);
 
-  // Get original image path from the image src
-  const imagePath = image.src.split('?')[0].replace(import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || '', '');
+  // Compute stable aspect ratio from actual dimensions first, falling back to ratio property
+  const computedAspectRatio = (() => {
+    if (image.width && image.height && image.width > 0 && image.height > 0) {
+      return `${image.width} / ${image.height}`;
+    }
+    if (aspectRatio) {
+      if (aspectRatio === '2:3') return '2 / 3';
+      if (aspectRatio === '3:2') return '3 / 2';
+      return aspectRatio.includes(':') ? aspectRatio.replace(':', ' / ') : aspectRatio;
+    }
+    if (image.ratio === '3:2') return '3 / 2';
+    if (image.ratio === '2:3') return '2 / 3';
+    return '2 / 3';
+  })();
+
+  // Get original image path from the image object or clean src
+  const imagePath = image.filePath || image.src.split('?')[0].replace(import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || '', '');
   
   // Generate different quality URLs
   const placeholderUrl = getOptimizedImageUrl(imagePath, createImageTransformations.placeholder(30));
@@ -36,19 +51,14 @@ const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
     const deviceType = getDeviceType();
     switch (quality) {
       case 'thumbnail':
-        // Use smart quality selection for thumbnails
         return getOptimizedImageUrl(imagePath, getOptimalQuality('thumbnail', deviceType));
       case 'preview':
-        // Use smart quality selection for previews
         return getOptimizedImageUrl(imagePath, getOptimalQuality('preview', deviceType));
       case 'full':
-        // Use smart quality selection for full size
         return getOptimizedImageUrl(imagePath, getOptimalQuality('fullSize', deviceType));
       case 'ultra':
-        // Ultra-high quality for main gallery view (2400px, q-100)
         return getOptimizedImageUrl(imagePath, createImageTransformations.ultra(2400));
       default:
-        // Default to responsive high quality
         return getOptimizedImageUrl(imagePath, createImageTransformations.responsive(deviceType));
     }
   };
@@ -61,10 +71,8 @@ const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
 
   const handleMainImageLoad = () => {
     setMainImageLoaded(true);
-    setTimeout(() => {
-      setShowSkeleton(false);
-      onImageLoad?.();
-    }, 150);
+    setShowSkeleton(false);
+    onImageLoad?.();
   };
 
   const handleImageError = () => {
@@ -72,54 +80,57 @@ const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
   };
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Skeleton placeholder - maintains aspect ratio */}
+    <div 
+      className={`relative w-full rounded-lg overflow-hidden bg-gray-800/80 ${className}`}
+      style={{ aspectRatio: computedAspectRatio }}
+    >
+      {/* Stable skeleton layer - smoothly fades out when image finishes loading */}
       {showSkeleton && (
-        <div className={`${aspectRatio === '2:3' ? 'aspect-[2/3]' : 'aspect-[3/2]'} bg-gray-800 relative rounded-lg`}>
+        <div 
+          className={`absolute inset-0 z-10 transition-opacity duration-300 ${
+            mainImageLoaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
           <Skeleton 
-            className="absolute inset-0 w-full h-full rounded-lg" 
+            className="w-full h-full rounded-lg" 
             shimmer 
             variant="square"
           />
         </div>
       )}
       
-      {/* Image container for proper aspect ratio */}
-      <div className={`${showSkeleton ? 'absolute inset-0' : `${aspectRatio === '2:3' ? 'aspect-[2/3]' : 'aspect-[3/2]'}`} relative rounded-lg overflow-hidden`}>
-        {/* Low-quality placeholder */}
-        <img 
-          className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-200 ${
-            placeholderLoaded && !mainImageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          src={placeholderUrl}
-          alt=""
-          loading={loading}
-          fetchPriority={fetchPriority}
-          onLoad={handlePlaceholderLoad}
-          onError={handleImageError}
-          style={{ filter: 'blur(10px)' }}
-        />
-        
-        {/* Main image - High Quality */}
-        <img 
-          className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
-            mainImageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          src={mainImageUrl}
-          alt={image.title}
-          loading={loading}
-          fetchPriority={fetchPriority}
-          onLoad={handleMainImageLoad}
-          onError={handleImageError}
-          style={{
-            imageRendering: 'crisp-edges' as const,
-            WebkitFontSmoothing: 'antialiased',
-            backfaceVisibility: 'hidden',
-            transform: 'translateZ(0)', // Hardware acceleration
-            filter: 'contrast(1.01) saturate(1.01)', // Subtle enhancement
-          } as React.CSSProperties}
-        />
-      </div>
+      {/* Low-quality blur placeholder */}
+      <img 
+        className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-200 ${
+          placeholderLoaded && !mainImageLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        src={placeholderUrl}
+        alt=""
+        loading={loading}
+        fetchPriority="low"
+        onLoad={handlePlaceholderLoad}
+        onError={handleImageError}
+        style={{ filter: 'blur(10px)' }}
+      />
+      
+      {/* Main optimized image */}
+      <img 
+        className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
+          mainImageLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        src={mainImageUrl}
+        alt={image.title}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        onLoad={handleMainImageLoad}
+        onError={handleImageError}
+        style={{
+          imageRendering: 'auto',
+          WebkitFontSmoothing: 'antialiased',
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)',
+        }}
+      />
     </div>
   );
 };

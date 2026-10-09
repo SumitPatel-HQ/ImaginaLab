@@ -1,24 +1,19 @@
 /* Simple hover animation styles */
 .hover-animation-container {
   position: relative !important;
-  z-index: 1 !important;
-  /* CSS custom properties for performance */
+  z-index: 1;
   --scale: 1;
-  --transition-speed: 1s;
-  --shadow-color: rgba(0,0,0,0.2);
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-  /* Ensure scaled content is visible */
+  --transition-speed: 0.25s;
+  --shadow-color: rgba(0, 0, 0, 0.25);
   overflow: visible !important;
+  overscroll-behavior: auto !important;
+  touch-action: pan-y !important;
 }
 
 /* Only apply hover effects on devices that support hover (desktop) */
 @media (hover: hover) and (pointer: fine) {
   .hover-animation-container:hover {
-    z-index: 99999 !important;
-    isolation: isolate !important;
+    z-index: 50 !important;
   }
 }
 
@@ -33,11 +28,9 @@
   will-change: transform;
   transform: scale(var(--scale));
   transform-origin: center center;
-  /* Hardware acceleration */
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-  /* Allow rounded corners to work properly */
   overflow: hidden;
+  overscroll-behavior: auto !important;
+  touch-action: pan-y !important;
 }
 
 /* Enhanced hover state - only on hover-capable devices */
@@ -60,6 +53,7 @@
 .hover-overlay {
   opacity: 0;
   transition: opacity var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -73,11 +67,13 @@
   transform: translateY(100%);
   transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1),
               opacity var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 .hover-title-text {
   opacity: 0;
   transition: opacity var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -90,107 +86,31 @@
   }
 }
 
-/* Ensure grid items don't create stacking context issues */
+/* Ensure grid and masonry containers allow scrolling */
 .image-grid-container > * {
   position: relative;
-  /* overflow: visible !important; */
 }
 
-/* Ensure grid containers don't clip scaled content */
 .grid {
   overflow: visible !important;
-  /* Add padding to accommodate scaled content */
-  
+  overscroll-behavior: auto !important;
 }
 
-/* Ensure masonry containers don't clip scaled content */
 .masonry-grid {
   overflow: visible !important;
-  /* Add padding to accommodate scaled content */
-  
+  overscroll-behavior: auto !important;
 }
 
-/* Ensure infinite scroll container doesn't clip */
-.infinite-scroll-component {
-  overflow: visible !important;
-  
-}
-
-
-
-/* Force z-index for hovered items to break out of any stacking context - only on hover-capable devices */
-@media (hover: hover) and (pointer: fine) {
-  .hover-animation-container:hover {
-    transform: translateZ(0) !important;
-  }
-}
-
-/* Image quality improvements for scaling */
+/* Image rendering optimizations */
 .hover-animation-container img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  backface-visibility: hidden;
-  transform: translateZ(0);
   will-change: transform;
+  overscroll-behavior: auto !important;
 }
 
-/* High-quality scaling for hovered images - only on hover-capable devices */
 @media (hover: hover) and (pointer: fine) {
   .hover-animation-container:hover img {
-    image-rendering: high-quality;
-    image-rendering: -webkit-optimize-contrast;
-    filter: contrast(1.05) saturate(1.1) sharpen(0.1);
-    transform: translateZ(0) scale(var(--hover-scale, 1));
-  }
-}
-
-/* Parallax background quality improvements */
-.react-parallax-bgimage {
-  image-rendering: high-quality !important;
-  image-rendering: -webkit-optimize-contrast !important;
-  filter: contrast(1.05) saturate(1.1) !important;
-  transform: translateZ(0) !important;
-  backface-visibility: hidden !important;
-}
-
-/* Prevent blurry scaling */
-.hover-animation-container * {
-  -webkit-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-/* Ultra high-quality image rendering for hover state - only on hover-capable devices */
-@media (hover: hover) and (pointer: fine) {
-  .hover-animation-container:hover .react-parallax-bgimage {
-    image-rendering: -webkit-optimize-contrast !important;
-    image-rendering: optimize-contrast !important;
-    image-rendering: crisp-edges !important;
-    -ms-interpolation-mode: bicubic !important;
-    filter: contrast(1.02) saturate(1.02) !important;
-    transform: translateZ(0) !important;
-  }
-}
-
-/* Force sub-pixel rendering for sharp edges - only on hover-capable devices */
-@media (hover: hover) and (pointer: fine) {
-  .hover-animation-container:hover {
-    -webkit-font-smoothing: subpixel-antialiased !important;
-    -moz-osx-font-smoothing: auto !important;
-  }
-}
-
-/* Ensure all child images maintain quality during scaling - only on hover-capable devices */
-@media (hover: hover) and (pointer: fine) {
-  .hover-animation-container:hover img,
-  .hover-animation-container:hover picture,
-  .hover-animation-container:hover source {
-    image-rendering: -webkit-optimize-contrast !important;
-    image-rendering: crisp-edges !important;
-    -ms-interpolation-mode: bicubic !important;
-    transform: translateZ(0) !important;
+    filter: contrast(1.03) saturate(1.05);
   }
 }

@@ -14,7 +14,7 @@ export const extractImageFilename = (image: ImageKitImage): string | null => {
   if (image.fileName) {
     return image.fileName;
   }
-  
+
   // Otherwise extract from src URL
   const parts = image.src.split('/');
   const lastPart = parts[parts.length - 1];
@@ -27,23 +27,23 @@ export const extractImageFilename = (image: ImageKitImage): string | null => {
 export const generateRandomNumber = (max: number, exclude: number | null, maxAttempts: number): number | null => {
   let attempts = 0;
   let randomNumber;
-  
+
   do {
     randomNumber = Math.floor(Math.random() * max) + 1;
     attempts++;
-    
+
     if (attempts > maxAttempts) {
       return null; // Give up after max attempts
     }
   } while (randomNumber === exclude);
-  
+
   return randomNumber;
 };
 
 // Fallback to existing images when random fails (guaranteed different index)
 export const getFallbackIndex = (images: ImageKitImage[], currentIndex: number): number | null => {
   if (!images || images.length <= 1) return null;
-  
+
   const safeCurrentIndex = (currentIndex >= 0 && currentIndex < images.length) ? currentIndex : 0;
   return (safeCurrentIndex + 1 + Math.floor(Math.random() * (images.length - 1))) % images.length;
 };
@@ -56,11 +56,11 @@ export const findImageIndex = (images: ImageKitImage[], imagePath: string): numb
 // Add new image to array
 export const addImageToArray = (images: ImageKitImage[], newImage: ImageKitImage): { images: ImageKitImage[]; index: number } => {
   const existingIndex = findImageIndex(images, newImage.src);
-  
+
   if (existingIndex !== -1) {
     return { images, index: existingIndex };
   }
-  
+
   const updatedImages = [...images, newImage];
   return { images: updatedImages, index: updatedImages.length - 1 };
 };
