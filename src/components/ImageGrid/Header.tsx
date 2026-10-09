@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Minus, Plus, Shuffle, MonitorDown } from 'lucide-react';
+import { ArrowLeft, Dices, Minus, Plus, Search, Shuffle, MonitorDown, X } from 'lucide-react';
 
 interface HeaderProps {
   onClose: () => void;
@@ -13,6 +13,13 @@ interface HeaderProps {
   onInstall?: () => void;
   /** True when Chrome has determined the app is installable and not yet installed. */
   isInstallable?: boolean;
+  query: string;
+  onQueryChange: (value: string) => void;
+  onSubmitSearch: (value: string) => void;
+  onRandomName: () => void;
+  onClearSearch: () => void;
+  isSearchDisabled?: boolean;
+  isRandomDisabled?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -24,6 +31,13 @@ const Header: React.FC<HeaderProps> = ({
   isShuffleDisabled = false,
   onInstall,
   isInstallable = false,
+  query,
+  onQueryChange,
+  onSubmitSearch,
+  onRandomName,
+  onClearSearch,
+  isSearchDisabled = false,
+  isRandomDisabled = false,
 }) => {
   const sliderTrackRef = useRef<HTMLDivElement>(null);
   const initialThumbPosition = ((gridDensity - 1) / 4) * 100;
@@ -112,6 +126,65 @@ const Header: React.FC<HeaderProps> = ({
           </button>
         )}
       </div>
+
+      <form
+        role="search"
+        aria-label="Search images by name"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmitSearch(query);
+        }}
+        className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none"
+      >
+        <label htmlFor="gallery-search" className="sr-only">
+          Search images by name
+        </label>
+        <div className="flex min-w-0 items-center gap-1.5 rounded-full bg-white/5 px-3 py-2 text-white/80 focus-within:bg-white/10">
+          <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <input
+            id="gallery-search"
+            type="search"
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') onClearSearch();
+            }}
+            placeholder="Search image name…"
+            disabled={isSearchDisabled}
+            className="w-36 bg-transparent text-sm outline-none placeholder:text-white/40 disabled:opacity-40 sm:w-48"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={onClearSearch}
+              aria-label="Clear search"
+              className="cursor-pointer rounded-full p-0.5 hover:bg-white/10"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        <button
+          type="submit"
+          disabled={isSearchDisabled}
+          aria-label="Search"
+          title="Search"
+          className="cursor-pointer rounded-full bg-white/5 px-4 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Search
+        </button>
+        <button
+          type="button"
+          onClick={onRandomName}
+          disabled={isRandomDisabled}
+          aria-label="Fill search with a random image name"
+          title="Random image name"
+          className="flex cursor-pointer items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-white/70 focus-visible:outline-offset-2"
+        >
+          <Dices className="w-5 h-5" aria-hidden="true" />
+          <span className="hidden text-sm sm:block">Random</span>
+        </button>
+      </form>
 
       <div className="flex items-center gap-4">
        

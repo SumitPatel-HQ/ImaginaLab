@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { ImageKitImage as Image } from '../../services/ImageKit';
 import ImageModal from '../ImageModal';
@@ -12,6 +12,12 @@ import { useSliderControl } from './slider';
 import { getGridClass, getGapClass } from './utils';
 import { buildMasonryLayout, getColumnCount } from './masonry';
 import { shuffleOrder } from './shuffle';
+import {
+  filterImagesByName,
+  findExactImageByName,
+  normalizeSearchQuery,
+  pickRandomSearchName,
+} from './search';
 import { useScreenWidth } from '../../hooks/useUtils';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 
@@ -32,6 +38,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
 
   // Custom data and interaction hooks
   const { 
+    allImages,
     visibleImages, 
     hasMore, 
     isInitialLoading, 
@@ -55,6 +62,13 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   const [shuffleFlash, setShuffleFlash] = useState(false);
   const lastShuffleAppliedRef = useRef(0);
   const flashTimeoutRef = useRef<number | null>(null);
+
+  // Search state: live input text vs committed (submitted) query.
+  // The grid filters only on the committed query to avoid per-keystroke churn.
+  const [query, setQuery] = useState('');
+  const [submittedQuery, setSubmittedQuery] = useState('');
+  const [lastRandomIdx, setLastRandomIdx] = useState<number | null>(null);
+  const [searchAnnouncement, setSearchAnnouncement] = useState('');
 
   useEffect(() => {
     if (lastShuffleAppliedRef.current !== shuffleGeneration) {
@@ -94,27 +108,39 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     return getColumnCount(gridDensity, screenWidth);
   }, [gridDensity, screenWidth]);
 
+  const isSearching = submittedQuery.trim().length > 0;
+
+  // Filter over the widest client truth (everything fetched), not the visible
+  // slice, so loaded-but-not-yet-visible names are still found.
+  const filteredImages = useMemo(() => {
+    if (!isSearching) return null;
+    return filterImagesByName(allImages, submittedQuery);
+  }, [allImages, submittedQuery, isSearching]);
+
+  // Single source of truth for rendering, index map, and modal navigation.
+  const displayImages = filteredImages ?? orderedImages;
+
   // Compute deterministic masonry columns (prefix-stable: existing cards never move)
   const columns = useMemo(() => {
-    if (layoutMode !== 'masonry' || orderedImages.length === 0) {
+    if (layoutMode !== 'masonry' || displayImages.length === 0) {
       return [];
     }
-    const layout = buildMasonryLayout(orderedImages, columnCount);
+    const layout = buildMasonryLayout(displayImages, columnCount);
     return layout.columns;
-  }, [orderedImages, columnCount, layoutMode]);
+  }, [displayImages, columnCount, layoutMode]);
 
   // Map image ID to its overall index for above-the-fold fetch prioritization
   const imageIndicesMap = useMemo(() => {
     const map = new Map<string, number>();
-    orderedImages.forEach((img, idx) => map.set(img.id, idx));
+    displayImages.forEach((img, idx) => map.set(img.id, idx));
     return map;
-  }, [orderedImages]);
+  }, [displayImages]);
 
   // Sentinel ref for IntersectionObserver infinite scrolling
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!hasMore || isLoadingMore || isInitialLoading) {
+    if (!hasMore || isLoadingMore || isInitialLoading || isSearching) {
       return;
     }
 
@@ -139,7 +165,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, isLoadingMore, isInitialLoading, fetchMoreData]);
+  }, [hasMore, isLoadingMore, isInitialLoading, isSearching, fetchMoreData]);
 
   // Handler functions
   const handleToggleLayout = () => {
@@ -174,8 +200,64 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   // card identity and loaded state are preserved). Shared by both layouts.
   const galleryFadeClass = `transition-opacity duration-300 ${shuffleFlash ? 'opacity-40' : 'opacity-100'}`;
 
-  const handleGoToNext = () => goToNextImage(orderedImages);
-  const handleGoToPrev = () => goToPrevImage(orderedImages);
+  const scrollGridToTop = () => {
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
+  };
+
+  const commitSearch = useCallback((raw: string, opts?: { fromRandom?: boolean }) => {
+    const norm = normalizeSearchQuery(raw);
+    setSubmittedQuery(norm);
+    if (!norm) {
+      setSearchAnnouncement('');
+      return;
+    }
+    const matches = filterImagesByName(allImages, norm);
+    const exact = findExactImageByName(allImages, norm);
+    if (matches.length === 0) {
+      setSearchAnnouncement(`No images match "${raw.trim()}".`);
+    } else {
+      const prefix = hasMore
+        ? `${matches.length} ${matches.length === 1 ? 'result' : 'results'} for "${raw.trim()}" (searched ${allImages.length} loaded images)`
+        : `${matches.length} ${matches.length === 1 ? 'result' : 'results'} for "${raw.trim()}"`;
+      setSearchAnnouncement(prefix);
+    }
+    // Reveal exact hits in the modal: always for Random-originated submits,
+    // otherwise only when a single exact filename/title hit exists.
+    if (exact && (opts?.fromRandom || (matches.length === 1 && exact))) {
+      openModal(exact);
+    }
+    scrollGridToTop();
+  }, [allImages, hasMore, openModal]);
+
+  const handleSubmitSearch = useCallback((raw: string) => {
+    commitSearch(raw);
+  }, [commitSearch]);
+
+  const handleRandomName = useCallback(() => {
+    if (isInitialLoading || allImages.length < 2) return;
+    const picked = pickRandomSearchName(allImages, lastRandomIdx);
+    if (!picked) return;
+    setLastRandomIdx(picked.index);
+    setQuery(picked.name);
+    commitSearch(picked.name, { fromRandom: true });
+    const matches = filterImagesByName(allImages, picked.name);
+    setSearchAnnouncement(
+      `Random image name: ${picked.name}. ${matches.length} ${matches.length === 1 ? 'result' : 'results'} for "${picked.name}"`
+    );
+  }, [allImages, commitSearch, isInitialLoading, lastRandomIdx]);
+
+  const handleClearSearch = useCallback(() => {
+    setQuery('');
+    setSubmittedQuery('');
+    setSearchAnnouncement('');
+    scrollGridToTop();
+  }, []);
+
+  const isSearchDisabled = isInitialLoading;
+  const isRandomDisabled = isInitialLoading || allImages.length < 2;
+
+  const handleGoToNext = () => goToNextImage(displayImages);
+  const handleGoToPrev = () => goToPrevImage(displayImages);
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900">
       <div className="max-w-7xl mx-auto relative">
@@ -189,10 +271,31 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
           isShuffleDisabled={isShuffleDisabled}
           isInstallable={isInstallable}
           onInstall={installApp}
+          query={query}
+          onQueryChange={setQuery}
+          onSubmitSearch={handleSubmitSearch}
+          onRandomName={handleRandomName}
+          onClearSearch={handleClearSearch}
+          isSearchDisabled={isSearchDisabled}
+          isRandomDisabled={isRandomDisabled}
         />
         <div aria-live="polite" role="status" className="sr-only">
-          {shuffleAnnouncement}
+          {shuffleAnnouncement} {searchAnnouncement}
         </div>
+        {isSearching && (
+          <div className="px-4 sm:px-6 pb-2 flex flex-wrap items-center gap-2 text-sm">
+            <p aria-hidden="true" className="text-gray-300">
+              {filteredImages?.length ?? 0} {(filteredImages?.length ?? 0) === 1 ? 'result' : 'results'} for &ldquo;{submittedQuery}&rdquo;
+              {hasMore ? ` (searched ${allImages.length} loaded images)` : ''}
+            </p>
+            <button
+              onClick={handleClearSearch}
+              className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+            >
+              Clear search
+            </button>
+          </div>
+        )}
         
         <div className="p-4 sm:p-6 pt-0">
           {/* Initial Loading Skeleton */}
@@ -204,6 +307,20 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
             />
           ) : (
             <div className="w-full">
+              {isSearching && filteredImages?.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 py-16 text-center">
+                  <p className="text-gray-300 text-sm">
+                    No images match &ldquo;{submittedQuery}&rdquo;
+                  </p>
+                  <button
+                    onClick={handleClearSearch}
+                    className="px-4 py-2 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              ) : (
+              <>
               {layoutMode === 'masonry' ? (
                 /* Stable Masonry Column Layout */
                 <div 
@@ -235,7 +352,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
                   role="region"
                   aria-label="Grid image gallery"
                 >
-                  {orderedImages.map((image, index) => (
+                  {displayImages.map((image, index) => (
                     <ImageCard
                       key={image.id}
                       image={image}
@@ -247,7 +364,8 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
                 </div>
               )}
 
-              {/* Infinite Scroll Sentinel and Feedback UI */}
+              {/* Infinite Scroll Sentinel and Feedback UI (paused while searching) */}
+              {!isSearching && (
               <div 
                 ref={sentinelRef} 
                 className="py-8 flex flex-col items-center justify-center w-full min-h-[60px]"
@@ -271,12 +389,15 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
                   </div>
                 )}
 
-                {!hasMore && orderedImages.length > 0 && !isLoadingMore && !loadError && (
+                {!hasMore && displayImages.length > 0 && !isLoadingMore && !loadError && (
                   <p className="text-gray-400 text-sm py-4">
-                    You've reached the end of the collection ({orderedImages.length} images)
+                    You&apos;ve reached the end of the collection ({displayImages.length} images)
                   </p>
                 )}
               </div>
+              )}
+              </>
+              )}
             </div>
           )}
         </div>
@@ -292,8 +413,8 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
           onClose={closeModal}
           onNext={handleGoToNext}
           onPrev={handleGoToPrev}
-          totalImages={orderedImages.length}
-          currentIndex={orderedImages.findIndex(img => img.id === selectedImage.id)}
+          totalImages={displayImages.length}
+          currentIndex={displayImages.findIndex(img => img.id === selectedImage.id)}
           enableTilt={false}
           prevImage={null}
           nextImage={null}
