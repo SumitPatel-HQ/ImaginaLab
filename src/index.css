@@ -20,18 +20,22 @@
   }
 
   /* Optimize images and animation for GPU acceleration */
-  img, .animate-spin, .transform, .transition {
+  img,
+  .animate-spin,
+  .transform,
+  .transition {
     will-change: transform;
     backface-visibility: hidden;
     transform: translateZ(0);
   }
 
   /* Remove blue highlight on tap for mobile */
-  a, button {
+  a,
+  button {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-  
+
   /* Hide scrollbars while maintaining scroll functionality */
   ::-webkit-scrollbar {
     display: none;
@@ -45,6 +49,7 @@
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }

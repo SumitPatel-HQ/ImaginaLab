@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-4">
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/30 rounded-full backdrop-blur-sm transition-colors text-white cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="hidden sm:block">Back</span>
@@ -84,12 +84,12 @@ const Header: React.FC<HeaderProps> = ({
        
         
         {/* Density Controls */}
-        <div className=" flex items-center gap-2 bg-white/10 rounded-full backdrop-blur-sm py-2 px-4">
+        <div className="flex items-center gap-2 rounded-full bg-black/5 backdrop-blur-sm py-1.5 px-3">
         {/* minus button */}
           <button 
             onClick={() => onGridDensityChange(Math.max(1, gridDensity - 1))}
             disabled={gridDensity <= 1}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent hover:bg-white/10 text-white/80 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             aria-label="Decrease density"
           >
             <Minus className="w-4 h-4" />
@@ -99,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Slider */}
           <div 
             ref={sliderTrackRef}
-            className="w-28 h-2 bg-linear-to-r from-indigo-400 to-purple-500 rounded-full relative cursor-pointer"
+            className="w-20 h-1 bg-linear-to-r from-indigo-400/70 to-purple-500/70 rounded-full relative cursor-pointer"
             onMouseDown={handleSliderClick}
             role="slider"
             aria-valuemin={1}
@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({
             aria-valuenow={gridDensity}
           >
             <div 
-              className="absolute top-1/2 w-4 h-4 rounded-full bg-white shadow-md cursor-pointer -translate-y-1/2 -translate-x-1/2 will-change-transform"
+              className="absolute top-1/2 w-3.5 h-3.5 rounded-full bg-white cursor-pointer -translate-y-1/2 -translate-x-1/2 will-change-transform"
               style={{ 
                 left: `${thumbPosition}%`
               }}
@@ -118,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({
           <button 
             onClick={() => onGridDensityChange(Math.min(5, gridDensity + 1))}
             disabled={gridDensity >= 5}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent hover:bg-white/10 text-white/80 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             aria-label="Increase density"
           >
             <Plus className="w-4 h-4" />

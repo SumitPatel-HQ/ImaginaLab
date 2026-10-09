@@ -48,7 +48,7 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
   loadingHandlers,
 }) => {
   const imageContainerRef = useRef<HTMLDivElement>(null);
-  
+
   logger.log('🖼️ ImageContainer rendering with image:', {
     title: image.title,
     src: image.src,
@@ -58,7 +58,7 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
   });
 
   return (
-    <div 
+    <div
       ref={imageContainerRef}
       className="relative max-w-[90vw] max-h-[90vh] overflow-hidden rounded-xl"
       onTouchStart={touchHandlers.onTouchStart}
@@ -77,7 +77,7 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
         touchAction: 'none' // Disable all default touch behaviors
       }}
     >
-      <div 
+      <div
         className="w-full h-full flex items-center justify-center relative bg-black/50 rounded-xl overflow-hidden"
         style={{
           transform: imageTransform,
@@ -100,12 +100,12 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
           />
         )}
 
-        <LoadingStates 
+        <LoadingStates
           loaded={loadingState.loaded}
           placeholderLoaded={loadingState.placeholderLoaded}
           error={loadingState.error}
         />
-        
+
         {/* Main Image */}
         {image.src && (
           <img
@@ -113,10 +113,9 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
             srcSet={getResponsiveSrcSet(image.src)}
             sizes="(max-width: 640px) 90vw, (max-width: 1024px) 80vw, (max-width: 1280px) 70vw, 60vw"
             alt={image.title || "Image"}
-            className={`max-w-full max-h-[90vh] object-contain transition-opacity duration-300 ${
-              loadingState.loaded ? 'opacity-100' : 'opacity-0'
-            }`}
-            loading="eager" 
+            className={`max-w-full max-h-[90vh] object-contain transition-opacity duration-300 ${loadingState.loaded ? 'opacity-100' : 'opacity-0'
+              }`}
+            loading="eager"
             fetchPriority="high"
             decoding="async"
             draggable={false}
@@ -133,7 +132,7 @@ export const ImageContainer: React.FC<ImageContainerProps> = React.memo(({
           <link rel="preload" as="image" href={getImageKitUrl(nextImage.src)} />
         )}
       </div>
-      
+
       <ImageTitle title="ImaginaLab" />
     </div>
   );

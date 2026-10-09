@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
 import type { ImageKitImage as Image } from '../../services/ImageKit';
 import { useGestures } from '../../hooks/useGestures';
 import { useTransform } from '../../hooks/useTransform';
@@ -18,10 +19,10 @@ interface ImageModalProps {
   nextImage?: Image | null;
 }
 
-const ImageModal: React.FC<ImageModalProps> = React.memo(({ 
-  image, 
-  onClose, 
-  onPrev, 
+const ImageModal: React.FC<ImageModalProps> = React.memo(({
+  image,
+  onClose,
+  onPrev,
   onNext,
   enableTilt = true,
   prevImage = null,
@@ -29,7 +30,7 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
 }) => {
   // Custom hooks for different concerns
   const { loadingState, handlers: loadingHandlers } = useImageState(image, prevImage, nextImage);
-  
+
   const handleSwipeComplete = useCallback((direction: 'left' | 'right') => {
     if (direction === 'right' && onPrev) {
       onPrev();
@@ -41,7 +42,7 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
   const { swipeState, dragState, touchHandlers, cleanup } = useGestures({
     onSwipeComplete: handleSwipeComplete,
     onDismiss: onClose,
- // Will be updated with zoom state later if needed
+    // Will be updated with zoom state later if needed
   });
 
   const transform = useTransform({
@@ -66,7 +67,7 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
 
     window.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
@@ -84,10 +85,10 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
   if (!image) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-[15px]"
       onClick={handleBackgroundClick}
-      style={{ 
+      style={{
         touchAction: 'none',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
@@ -95,9 +96,23 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
       }}
     >
       <div className="absolute inset-0 animate-modal-in pointer-events-none" />
-      
-      <div 
-        className="relative max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[60%] max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl transform transition-transform duration-300 ease-in-out will-change-transform"
+
+      <button
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[60] flex h-12 w-12 sm:h-14 sm:w-14 cursor-pointer items-center justify-center rounded-md bg-transparent text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-opacity duration-200 hover:opacity-70 active:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 motion-reduce:transition-none touch-manipulation after:absolute after:-inset-2 after:content-['']"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        onTouchStart={(e) => {
+          e.stopPropagation();
+        }}
+        aria-label="Close modal"
+      >
+        <X className="h-9 w-9 sm:h-10 sm:w-10" strokeWidth={2} />
+      </button>
+
+      <div
+        className="group relative max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[60%] max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl transform transition-transform duration-300 ease-in-out will-change-transform"
         style={{
           transform: dragState.y ? `translateY(${dragState.y}px)` : 'none',
           opacity: dragState.y ? Math.max(1 - (dragState.y / 300), 0.3) : 1,
@@ -105,12 +120,11 @@ const ImageModal: React.FC<ImageModalProps> = React.memo(({
         }}
       >
         <ModalControls
-          onClose={onClose}
           onPrev={onPrev}
           onNext={onNext}
           isSwiping={swipeState.isSwiping}
         />
-        
+
         <ImageContainer
           image={image}
           loadingState={loadingState}
