@@ -15,6 +15,7 @@ import { shuffleOrder } from './shuffle';
 import {
   filterImagesByName,
   findExactImageByName,
+  formatSearchCount,
   normalizeSearchQuery,
   pickRandomSearchName,
 } from './search';
@@ -138,6 +139,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
 
   // Sentinel ref for IntersectionObserver infinite scrolling
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  // Top of the grid region so committed searches return to the results,
+  // not just the page top.
+  const gridTopRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!hasMore || isLoadingMore || isInitialLoading || isSearching) {
@@ -201,7 +205,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   const galleryFadeClass = `transition-opacity duration-300 ${shuffleFlash ? 'opacity-40' : 'opacity-100'}`;
 
   const scrollGridToTop = () => {
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
+    if (typeof window === 'undefined') return;
+    const top = gridTopRef.current;
+    if (top) top.scrollIntoView({ block: 'start' });
+    else window.scrollTo({ top: 0 });
   };
 
   const commitSearch = useCallback((raw: string, opts?: { fromRandom?: boolean }) => {
@@ -216,10 +223,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     if (matches.length === 0) {
       setSearchAnnouncement(`No images match "${raw.trim()}".`);
     } else {
-      const prefix = hasMore
-        ? `${matches.length} ${matches.length === 1 ? 'result' : 'results'} for "${raw.trim()}" (searched ${allImages.length} loaded images)`
-        : `${matches.length} ${matches.length === 1 ? 'result' : 'results'} for "${raw.trim()}"`;
-      setSearchAnnouncement(prefix);
+      setSearchAnnouncement(formatSearchCount(matches.length, raw, allImages.length, hasMore));
     }
     // Reveal exact hits in the modal: always for Random-originated submits,
     // otherwise only when a single exact filename/title hit exists.
@@ -242,9 +246,9 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
     commitSearch(picked.name, { fromRandom: true });
     const matches = filterImagesByName(allImages, picked.name);
     setSearchAnnouncement(
-      `Random image name: ${picked.name}. ${matches.length} ${matches.length === 1 ? 'result' : 'results'} for "${picked.name}"`
+      `Random image name: ${picked.name}. ${formatSearchCount(matches.length, picked.name, allImages.length, hasMore)}`
     );
-  }, [allImages, commitSearch, isInitialLoading, lastRandomIdx]);
+  }, [allImages, commitSearch, hasMore, isInitialLoading, lastRandomIdx]);
 
   const handleClearSearch = useCallback(() => {
     setQuery('');
@@ -260,7 +264,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   const handleGoToPrev = () => goToPrevImage(displayImages);
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-indigo-900">
-      <div className="max-w-7xl mx-auto relative">
+      <div ref={gridTopRef} className="max-w-7xl mx-auto relative scroll-mt-2">
         <Header
           onClose={onClose}
           onToggleLayout={handleToggleLayout}
@@ -285,8 +289,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
         {isSearching && (
           <div className="px-4 sm:px-6 pb-2 flex flex-wrap items-center gap-2 text-sm">
             <p aria-hidden="true" className="text-gray-300">
-              {filteredImages?.length ?? 0} {(filteredImages?.length ?? 0) === 1 ? 'result' : 'results'} for &ldquo;{submittedQuery}&rdquo;
-              {hasMore ? ` (searched ${allImages.length} loaded images)` : ''}
+              {formatSearchCount(filteredImages?.length ?? 0, submittedQuery, allImages.length, hasMore)}
             </p>
             <button
               onClick={handleClearSearch}

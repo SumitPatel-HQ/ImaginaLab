@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   filterImagesByName,
   findExactImageByName,
+  formatSearchCount,
   normalizeSearchQuery,
   pickRandomSearchIndex,
   pickRandomSearchName,
@@ -64,6 +65,15 @@ describe("filterImagesByName", () => {
   });
 });
 
+describe("formatSearchCount", () => {
+  it("phrases singular/plural and notes partial loads", () => {
+    assert.equal(formatSearchCount(1, "sun", 30, false), '1 result for "sun"');
+    assert.equal(
+      formatSearchCount(3, "sun", 30, true),
+      '3 results for "sun" (searched 30 loaded images)',
+    );
+  });
+});
 describe("findExactImageByName", () => {
   it("finds exact fileName or title match case-insensitively", () => {
     const input = make();

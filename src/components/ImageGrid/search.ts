@@ -68,6 +68,18 @@ export const pickRandomSearchIndex = (
   return (safe + 1 + Math.floor(Math.random() * (count - 1))) % count;
 };
 
+/** Single shared result-count phrasing for announcements and the result banner. */
+export const formatSearchCount = (
+  matchCount: number,
+  rawQuery: string,
+  loadedCount: number,
+  hasMore: boolean,
+): string => {
+  const noun = matchCount === 1 ? "result" : "results";
+  const base = `${matchCount} ${noun} for "${rawQuery.trim()}"`;
+  return hasMore ? `${base} (searched ${loadedCount} loaded images)` : base;
+};
+
 export const pickRandomSearchName = <T extends SearchableImage>(
   images: readonly T[],
   lastIndex: number | null,

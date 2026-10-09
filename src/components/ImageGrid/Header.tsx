@@ -134,6 +134,9 @@ const Header: React.FC<HeaderProps> = ({
           e.preventDefault();
           onSubmitSearch(query);
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClearSearch();
+        }}
         className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none"
       >
         <label htmlFor="gallery-search" className="sr-only">
@@ -146,9 +149,6 @@ const Header: React.FC<HeaderProps> = ({
             type="search"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') onClearSearch();
-            }}
             placeholder="Search image name…"
             disabled={isSearchDisabled}
             className="w-36 bg-transparent text-sm outline-none placeholder:text-white/40 disabled:opacity-40 sm:w-48"
