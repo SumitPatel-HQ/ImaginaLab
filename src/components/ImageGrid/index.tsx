@@ -21,7 +21,10 @@ interface ImageGridProps {
 
 const ImageGrid: React.FC<ImageGridProps> = ({ images, onClose }) => {
   const [layoutMode, setLayoutMode] = useState<'grid' | 'masonry'>('masonry');
-  const [gridDensity, setGridDensity] = useState(3);
+  // Mobile (<640px) starts at lowest density (1 col); tablets & desktop share default (3).
+  const [gridDensity, setGridDensity] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 3
+  );
 
   // Device screen width
   const screenWidth = useScreenWidth();
