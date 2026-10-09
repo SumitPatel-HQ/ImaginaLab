@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 
 function imagekitProxyPlugin(): Plugin {
   let privateKey = '';
+  let serverPassword = '';
 
   const handleApiRequest = async (req: Connect.IncomingMessage, res: ServerResponse) => {
     if (req.method !== 'GET') {
@@ -47,17 +48,59 @@ function imagekitProxyPlugin(): Plugin {
     }
   };
 
+  const handleAuthRequest = async (req: Connect.IncomingMessage, res: ServerResponse) => {
+    if (req.method !== 'POST') {
+      res.statusCode = 405;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+      return;
+    }
+
+    if (!serverPassword) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'PASSWORD_HERE is not defined in environment variables' }));
+      return;
+    }
+
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        const parsed = body ? JSON.parse(body) : {};
+        if (typeof parsed?.password === 'string' && parsed.password === serverPassword) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ success: true }));
+        } else {
+          res.statusCode = 401;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ success: false, error: 'Incorrect password' }));
+        }
+      } catch {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: 'Invalid JSON request' }));
+      }
+    });
+  };
+
   return {
     name: 'imagekit-proxy',
     configResolved(config) {
       const env = loadEnv(config.mode, process.cwd(), '');
       privateKey = env.IMAGEKIT_PRIVATE_KEY || '';
+      serverPassword = env.PASSWORD_HERE || env.VITE_GALLERY_PASSWORD || '';
     },
     configureServer(server) {
       server.middlewares.use('/api/files', handleApiRequest);
+      server.middlewares.use('/api/auth', handleAuthRequest);
     },
     configurePreviewServer(server) {
       server.middlewares.use('/api/files', handleApiRequest);
+      server.middlewares.use('/api/auth', handleAuthRequest);
     },
   };
 }
@@ -73,4 +116,3 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
 });
-

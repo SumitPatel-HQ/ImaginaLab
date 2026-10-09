@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// change the password in App.tsx
 import React, { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
 
 interface PasswordProtectionProps {
   onAuthenticated: () => void;
-  correctPassword: string;
+  correctPassword?: string;
 }
 
 const PasswordProtection: React.FC<PasswordProtectionProps> = ({ 
   onAuthenticated,
-  correctPassword = '2000' // Default password, can be overridden by props
 }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Add visibility change detection to expire authentication when tab/window changes
   useEffect(() => {
@@ -45,18 +44,37 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
     };
   }, []);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password === correctPassword) {
-      setAuthenticated(true);
-      setError(false);
-      // No longer storing in localStorage
-      onAuthenticated();
-    } else {
+    if (!password || isLoading) return;
+
+    setIsLoading(true);
+    setError(false);
+
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        setAuthenticated(true);
+        setError(false);
+        onAuthenticated();
+      } else {
+        setError(true);
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
+    } catch {
       setError(true);
       setShake(true);
       setTimeout(() => setShake(false), 500);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -87,6 +105,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
                 className={`w-full px-4 py-3 rounded-lg bg-gray-800/80 text-white border ${error ? 'border-red-500' : 'border-gray-700'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                 placeholder="Enter password"
                 autoFocus
+                disabled={isLoading}
               />
               {error && (
                 <p className="text-red-500 mt-2">Incorrect password. Please try again.</p>
@@ -95,9 +114,10 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
             
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition-colors duration-300"
+              disabled={isLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors duration-300"
             >
-              Unlock Gallery
+              {isLoading ? 'Verifying...' : 'Unlock Gallery'}
             </button>
           </form>
         </div>
@@ -106,4 +126,4 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
   );
 };
 
-export default PasswordProtection; 
+export default PasswordProtection;
