@@ -13,6 +13,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
 }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [shake, setShake] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +51,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
 
     setIsLoading(true);
     setError(false);
+    setErrorMessage('');
 
     try {
       const response = await fetch('/api/auth', {
@@ -60,17 +62,21 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
         body: JSON.stringify({ password }),
       });
 
+      const data = await response.json().catch(() => null);
+
       if (response.ok) {
         setAuthenticated(true);
         setError(false);
         onAuthenticated();
       } else {
         setError(true);
+        setErrorMessage(data?.error || (response.status === 404 ? 'Auth API not found (404)' : 'Incorrect password. Please try again.'));
         setShake(true);
         setTimeout(() => setShake(false), 500);
       }
     } catch {
       setError(true);
+      setErrorMessage('Failed to connect to authentication server.');
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {
@@ -101,6 +107,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setError(false);
+                  setErrorMessage('');
                 }}
                 className={`w-full px-4 py-3 rounded-lg bg-gray-800/80 text-white border ${error ? 'border-red-500' : 'border-gray-700'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                 placeholder="Enter password"
@@ -108,7 +115,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({
                 disabled={isLoading}
               />
               {error && (
-                <p className="text-red-500 mt-2">Incorrect password. Please try again.</p>
+                <p className="text-red-500 mt-2">{errorMessage || 'Incorrect password. Please try again.'}</p>
               )}
             </div>
             
